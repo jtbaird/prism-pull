@@ -36,7 +36,7 @@ def check_days(day, month):
 
 
 def check_years(year):
-    present = int(datetime.now().year)
+    present = int(datetime.datetime.now().year)
     if year < 1895 or year > present:
         raise ValueError(f"Year must be between 1895 and {present}.")
 
@@ -78,7 +78,7 @@ class PrismSession:
         self.driver.quit()
         logger.info("PRISM session closed.")
 
-    def submit_coord_pair(
+    def submit_coordindates(
         self,
         latitude,
         longitude,
@@ -116,151 +116,56 @@ class PrismSession:
         Returns:
             None
         """
-        # initialize variables
-        true_defaults = {"precipitation": "cvar_ppt", "mean_temp": "cvar_tmean"}
-
-        false_defaults = {
-            "min_temp": "cvar_tmin",
-            "max_temp": "cvar_tmax",
-            "min_vpd": "cvar_vpdmin",
-            "max_vpd": "cvar_vpdmax",
-            "mean_dewpoint_temp": "cvar_tdmean",
-            "cloud_transmittance": "cvar_soltrans",
-            "solar_rad_horiz_sfc": "cvar_soltotal",
-            "solar_rad_sloped_sfc": "cvar_solslope",
-            "solar_rad_clear_sky": "cvar_solclear",
-        }
-
-        date_id = "tper_monthly"
-        start_month_id = "tper_monthly_start_month"
-        start_year_id = "tper_monthly_start_year"
-        end_month_id = "tper_monthly_end_month"
-        end_year_id = "tper_monthly_end_year"
-
-        if is_30_year_monthly:
-            date_id = "tper_monthly_normals"
-        elif is_30_year_daily:
-            date_id = "tper_daily_normals"
-        elif is_annual:
-            date_id = "tper_yearly"
-            start_year_id = "tper_yearly_start_year"
-            end_year_id = "tper_yearly_end_year"
-        elif is_single_month:
-            date_id = "tper_onemonth"
-            start_month_id = "tper_onemonth_month"
-            start_year_id = "tper_onemonth_start_year"
-            end_year_id = "tper_onemonth_end_year"
-        elif is_daily:
-            date_id = "tper_daily"
-            start_date_id = "tper_daily_start_day"
-            start_month_id = "tper_daily_start_month"
-            start_year_id = "tper_daily_start_year"
-            end_date_id = "tper_daily_end_day"
-            end_month_id = "tper_daily_end_month"
-            end_year_id = "tper_daily_end_year"
 
         # Validate date inputs
-        check_days(start_day, start_month)
-        check_days(end_day, end_month)
-        check_months(start_month)
-        check_months(end_month)
-        check_years(start_year)
-        check_years(end_year)
+        self._validate_inputs(
+            start_day, 
+            start_month, 
+            start_year, 
+            end_day, 
+            end_month, 
+            end_year
+        )
 
         # open browser and switch to coordinate location mode
         self.driver.get(self.singular_url)
-        coordinate_button = WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, "loc_method_coords"))
+
+        # set coordinates
+        self._set_coordinates(latitude, longitude)
+
+        # set date configuration:
+        self._set_date_range(
+            is_30_year_monthly,
+            is_30_year_daily,
+            is_annual,
+            is_single_month,
+            is_monthly,
+            is_daily,
+            start_day,
+            start_month,
+            start_year,
+            end_day,
+            end_month,
+            end_year
         )
-        coordinate_button.click()
 
-        # get coordinate fields once they're available and populate them
-        lat_field = WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, "loc_lat"))
+        # Set data settings
+        self._set_data_settings(
+            precipitation,
+            min_temp,
+            mean_temp,
+            max_temp,
+            min_vpd,
+            max_vpd,
+            mean_dewpoint_temp,
+            cloud_transmittance,
+            solar_rad_horiz_sfc,
+            solar_rad_sloped_sfc,
+            solar_rad_clear_sky,
         )
-        lon_field = WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, "loc_lon"))
-        )
-        lat_field.clear()
-        lat_field.send_keys(str(latitude))
-        lon_field.clear()
-        lon_field.send_keys(str(longitude))
-
-        # click date button:
-        date_button = WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, date_id))
-        )
-        date_button.click()
-
-        # set finer date ranges
-        if not (is_30_year_monthly or is_30_year_daily or is_annual):
-            # select years
-            start_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
-                EC.presence_of_element_located((By.ID, start_year_id))
-            )
-            end_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
-                EC.presence_of_element_located((By.ID, end_year_id))
-            )
-
-            # Create a Select object
-            select_start_year = Select(start_year_dropdown)
-            select_end_year = Select(end_year_dropdown)
-            # Select the desired year by value
-            select_start_year.select_by_value(str(start_year))
-            select_end_year.select_by_value(str(end_year))
-
-            if not is_annual:
-                start_month_dropdown = WebDriverWait(
-                    self.driver, self.driver_wait
-                ).until(EC.presence_of_element_located((By.ID, start_month_id)))
-                select_start_month = Select(start_month_dropdown)
-                select_start_month.select_by_value(str(start_month))
-
-                if not is_single_month:
-                    end_month_dropdown = WebDriverWait(
-                        self.driver, self.driver_wait
-                    ).until(EC.presence_of_element_located((By.ID, end_month_id)))
-                    select_end_month = Select(end_month_dropdown)
-                    select_end_month.select_by_value(str(end_month))
-
-                    if not is_monthly:
-                        start_date_dropdown = WebDriverWait(
-                            self.driver, self.driver_wait
-                        ).until(EC.presence_of_element_located((By.ID, start_date_id)))
-                        select_start_date = Select(start_date_dropdown)
-                        select_start_date.select_by_value(str(start_day))
-
-                        end_date_dropdown = WebDriverWait(
-                            self.driver, self.driver_wait
-                        ).until(EC.presence_of_element_located((By.ID, end_date_id)))
-                        select_end_date = Select(end_date_dropdown)
-                        select_end_date.select_by_value(str(end_day))
-
-        # TODO: pick data settings
-        for key in true_defaults:
-            if not eval(key):
-                # Click the corresponding button if the setting is not true
-                button = WebDriverWait(self.driver, self.driver_wait).until(
-                    EC.element_to_be_clickable((By.ID, true_defaults[key]))
-                )
-                button.click()
-
-        for key in false_defaults:
-            if eval(key):
-                # Click the corresponding button if the setting is not false
-                button = WebDriverWait(self.driver, self.driver_wait).until(
-                    EC.element_to_be_clickable((By.ID, false_defaults[key]))
-                )
-                button.click()
 
         # submit the form and download the data
-        WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, "submit_button"))
-        ).click()
-        WebDriverWait(self.driver, self.driver_wait).until(
-            EC.element_to_be_clickable((By.ID, "download_button"))
-        ).click()
-        time.sleep(1)  # Wait for download to complete
+        self._submit_and_download()
 
     def get_30_year_monthly_normals(
         self,
@@ -279,7 +184,7 @@ class PrismSession:
         solar_rad_clear_sky=False,
     ):
 
-        self.submit_coord_pair(
+        self.submit_coordindates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -310,7 +215,7 @@ class PrismSession:
         mean_dewpoint_temp=False,
     ):
 
-        self.submit_coord_pair(
+        self.submit_coordindates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -360,7 +265,7 @@ class PrismSession:
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
 
-        self.submit_coord_pair(
+        self.submit_coordindates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -414,7 +319,7 @@ class PrismSession:
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
 
-        self.submit_coord_pair(
+        self.submit_coordindates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -475,7 +380,7 @@ class PrismSession:
                 "Start month must be less than or equal to end month when years are equal."
             )
 
-        self.submit_coord_pair(  ## don't need to set is_monthly bc defaults to True
+        self.submit_coordindates(  ## don't need to set is_monthly bc defaults to True
             latitude,
             longitude,
             precipitation=precipitation,
@@ -543,7 +448,7 @@ class PrismSession:
                 "Start day must be less than or equal to end day when months and years are equal."
             )
 
-        self.submit_coord_pair(
+        self.submit_coordindates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -562,3 +467,181 @@ class PrismSession:
             end_month=end_month,
             end_year=end_year,
         )
+
+    def _validate_inputs(
+        self, start_day, start_month, start_year, end_day, end_month, end_year
+    ):
+        check_days(start_day, start_month)
+        check_days(end_day, end_month)
+        check_months(start_month)
+        check_months(end_month)
+        check_years(start_year)
+        check_years(end_year)
+
+    def _set_coordinates(self, latitude, longitude):
+        coordinate_button = WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "loc_method_coords"))
+        )
+        coordinate_button.click()
+
+        # get coordinate fields once they're available and populate them
+        lat_field = WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "loc_lat"))
+        )
+        lon_field = WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "loc_lon"))
+        )
+        lat_field.clear()
+        lat_field.send_keys(str(latitude))
+        lon_field.clear()
+        lon_field.send_keys(str(longitude))
+
+    def _set_date_range(
+            self,
+            is_30_year_monthly,
+            is_30_year_daily,
+            is_annual,
+            is_single_month,
+            is_monthly,
+            is_daily,
+            start_day,
+            start_month,
+            start_year,
+            end_day,
+            end_month,
+            end_year
+        ):
+
+        date_id = "tper_monthly"
+        start_month_id = "tper_monthly_start_month"
+        start_year_id = "tper_monthly_start_year"
+        end_month_id = "tper_monthly_end_month"
+        end_year_id = "tper_monthly_end_year"
+
+        if is_30_year_monthly:
+            date_id = "tper_monthly_normals"
+        elif is_30_year_daily:
+            date_id = "tper_daily_normals"
+        elif is_annual:
+            date_id = "tper_yearly"
+            start_year_id = "tper_yearly_start_year"
+            end_year_id = "tper_yearly_end_year"
+        elif is_single_month:
+            date_id = "tper_onemonth"
+            start_month_id = "tper_onemonth_month"
+            start_year_id = "tper_onemonth_start_year"
+            end_year_id = "tper_onemonth_end_year"
+        elif is_daily:
+            date_id = "tper_daily"
+            start_date_id = "tper_daily_start_day"
+            start_month_id = "tper_daily_start_month"
+            start_year_id = "tper_daily_start_year"
+            end_date_id = "tper_daily_end_day"
+            end_month_id = "tper_daily_end_month"
+            end_year_id = "tper_daily_end_year"
+
+        date_button = WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, date_id))
+        )
+        date_button.click()
+
+        # set finer date ranges
+        if not (is_30_year_monthly or is_30_year_daily):
+            # select years
+            start_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
+                EC.presence_of_element_located((By.ID, start_year_id))
+            )
+            end_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
+                EC.presence_of_element_located((By.ID, end_year_id))
+            )
+
+            # Create a Select object
+            logger.info(f"Selecting years: {start_year} to {end_year}")
+            select_start_year = Select(start_year_dropdown)
+            select_end_year = Select(end_year_dropdown)
+            # Select the desired year by value
+            select_start_year.select_by_value(str(start_year))
+            select_end_year.select_by_value(str(end_year))
+
+            if not is_annual:
+                logger.info(f"Selecting start month: {start_month}")
+                start_month_dropdown = WebDriverWait(
+                    self.driver, self.driver_wait
+                ).until(EC.presence_of_element_located((By.ID, start_month_id)))
+                select_start_month = Select(start_month_dropdown)
+                select_start_month.select_by_value(str(start_month))
+
+                if not is_single_month:
+                    logger.info(f"Selecting end month: {end_month}")
+                    end_month_dropdown = WebDriverWait(
+                        self.driver, self.driver_wait
+                    ).until(EC.presence_of_element_located((By.ID, end_month_id)))
+                    select_end_month = Select(end_month_dropdown)
+                    select_end_month.select_by_value(str(end_month))
+
+                    if not is_monthly:
+                        logger.info(f"Selecting start day: {start_day} and end day: {end_day}")
+                        start_date_dropdown = WebDriverWait(
+                            self.driver, self.driver_wait
+                        ).until(EC.presence_of_element_located((By.ID, start_date_id)))
+                        select_start_date = Select(start_date_dropdown)
+                        select_start_date.select_by_value(str(start_day))
+
+                        end_date_dropdown = WebDriverWait(
+                            self.driver, self.driver_wait
+                        ).until(EC.presence_of_element_located((By.ID, end_date_id)))
+                        select_end_date = Select(end_date_dropdown)
+                        select_end_date.select_by_value(str(end_day))
+
+    def _set_data_settings(
+        self,
+        precipitation,
+        min_temp,
+        mean_temp,
+        max_temp,
+        min_vpd,
+        max_vpd,
+        mean_dewpoint_temp,
+        cloud_transmittance,
+        solar_rad_horiz_sfc,
+        solar_rad_sloped_sfc,
+        solar_rad_clear_sky,
+    ):
+
+        true_defaults = {"precipitation": "cvar_ppt", "mean_temp": "cvar_tmean"}
+
+        false_defaults = {
+            "min_temp": "cvar_tmin",
+            "max_temp": "cvar_tmax",
+            "min_vpd": "cvar_vpdmin",
+            "max_vpd": "cvar_vpdmax",
+            "mean_dewpoint_temp": "cvar_tdmean",
+            "cloud_transmittance": "cvar_soltrans",
+            "solar_rad_horiz_sfc": "cvar_soltotal",
+            "solar_rad_sloped_sfc": "cvar_solslope",
+            "solar_rad_clear_sky": "cvar_solclear",
+        }
+        for key in true_defaults:
+            if not eval(key):
+                # Click the corresponding button if the setting is not true
+                button = WebDriverWait(self.driver, self.driver_wait).until(
+                    EC.element_to_be_clickable((By.ID, true_defaults[key]))
+                )
+                button.click()
+
+        for key in false_defaults:
+            if eval(key):
+                # Click the corresponding button if the setting is not false
+                button = WebDriverWait(self.driver, self.driver_wait).until(
+                    EC.element_to_be_clickable((By.ID, false_defaults[key]))
+                )
+                button.click()
+
+    def _submit_and_download(self):
+        WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "submit_button"))
+        ).click()
+        WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "download_button"))
+        ).click()
+        time.sleep(1)  # Wait for download to complete
