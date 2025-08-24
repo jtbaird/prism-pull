@@ -78,7 +78,7 @@ class PrismSession:
         self.driver.quit()
         logger.info("PRISM session closed.")
 
-    def submit_coordindates(
+    def submit_coordinates(
         self,
         latitude,
         longitude,
@@ -119,12 +119,7 @@ class PrismSession:
 
         # Validate date inputs
         self._validate_inputs(
-            start_day, 
-            start_month, 
-            start_year, 
-            end_day, 
-            end_month, 
-            end_year
+            start_day, start_month, start_year, end_day, end_month, end_year
         )
 
         # open browser and switch to coordinate location mode
@@ -146,7 +141,7 @@ class PrismSession:
             start_year,
             end_day,
             end_month,
-            end_year
+            end_year,
         )
 
         # Set data settings
@@ -183,8 +178,29 @@ class PrismSession:
         solar_rad_sloped_sfc=False,
         solar_rad_clear_sky=False,
     ):
+        """
+        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
 
-        self.submit_coordindates(
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+            cloud_transmittance (bool, optional): Whether to include cloud transmittance data. Defaults to False.
+            solar_rad_horiz_sfc (bool, optional): Whether to include horizontal surface solar radiation data. Defaults to False.
+            solar_rad_sloped_sfc (bool, optional): Whether to include sloped surface solar radiation data. Defaults to False.
+            solar_rad_clear_sky (bool, optional): Whether to include clear sky solar radiation data. Defaults to False.
+
+        Returns:
+            None
+        """
+
+        self.submit_coordinates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -214,8 +230,25 @@ class PrismSession:
         max_vpd=False,
         mean_dewpoint_temp=False,
     ):
+        """
+        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
 
-        self.submit_coordindates(
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+
+        self.submit_coordinates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -265,7 +298,7 @@ class PrismSession:
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
 
-        self.submit_coordindates(
+        self.submit_coordinates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -319,7 +352,7 @@ class PrismSession:
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
 
-        self.submit_coordindates(
+        self.submit_coordinates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -380,7 +413,7 @@ class PrismSession:
                 "Start month must be less than or equal to end month when years are equal."
             )
 
-        self.submit_coordindates(  ## don't need to set is_monthly bc defaults to True
+        self.submit_coordinates(  ## don't need to set is_monthly bc defaults to True
             latitude,
             longitude,
             precipitation=precipitation,
@@ -448,7 +481,7 @@ class PrismSession:
                 "Start day must be less than or equal to end day when months and years are equal."
             )
 
-        self.submit_coordindates(
+        self.submit_coordinates(
             latitude,
             longitude,
             precipitation=precipitation,
@@ -497,20 +530,20 @@ class PrismSession:
         lon_field.send_keys(str(longitude))
 
     def _set_date_range(
-            self,
-            is_30_year_monthly,
-            is_30_year_daily,
-            is_annual,
-            is_single_month,
-            is_monthly,
-            is_daily,
-            start_day,
-            start_month,
-            start_year,
-            end_day,
-            end_month,
-            end_year
-        ):
+        self,
+        is_30_year_monthly,
+        is_30_year_daily,
+        is_annual,
+        is_single_month,
+        is_monthly,
+        is_daily,
+        start_day,
+        start_month,
+        start_year,
+        end_day,
+        end_month,
+        end_year,
+    ):
 
         date_id = "tper_monthly"
         start_month_id = "tper_monthly_start_month"
@@ -580,7 +613,9 @@ class PrismSession:
                     select_end_month.select_by_value(str(end_month))
 
                     if not is_monthly:
-                        logger.info(f"Selecting start day: {start_day} and end day: {end_day}")
+                        logger.info(
+                            f"Selecting start day: {start_day} and end day: {end_day}"
+                        )
                         start_date_dropdown = WebDriverWait(
                             self.driver, self.driver_wait
                         ).until(EC.presence_of_element_located((By.ID, start_date_id)))
