@@ -135,11 +135,36 @@ class PrismSession:
         end_year=2020,
     ):
         """
-        Submits a single latitude and longitude to the PRISM Explorer and downloads the result.
+        Submits a request to the PRISM Explorer for climate data based on provided coordinates or a CSV file.
 
         Args:
-            latitude (float): Latitude value to submit.
-            longitude (float): Longitude value to submit.
+            is_bulk_request (bool): If True, submits a bulk request using a CSV file. If False, submits a single coordinate request.
+            latitude (float, optional): Latitude value for single coordinate requests. Defaults to 40.9473.
+            longitude (float, optional): Longitude value for single coordinate requests. Defaults to -112.2170.
+            csv_path (str, optional): Path to CSV file for bulk requests. Defaults to "/dummy/path/to/csv".
+            precipitation (bool, optional): Include precipitation data. Defaults to True.
+            min_temp (bool, optional): Include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Include mean temperature data. Defaults to True.
+            max_temp (bool, optional): Include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Include mean dewpoint temperature data. Defaults to False.
+            cloud_transmittance (bool, optional): Include cloud transmittance data. Defaults to False.
+            solar_rad_horiz_sfc (bool, optional): Include horizontal surface solar radiation data. Defaults to False.
+            solar_rad_sloped_sfc (bool, optional): Include sloped surface solar radiation data. Defaults to False.
+            solar_rad_clear_sky (bool, optional): Include clear sky solar radiation data. Defaults to False.
+            is_30_year_monthly (bool, optional): Request 30-year monthly normals. Defaults to False.
+            is_30_year_daily (bool, optional): Request 30-year daily normals. Defaults to False.
+            is_annual (bool, optional): Request annual values. Defaults to False.
+            is_single_month (bool, optional): Request single month values. Defaults to False.
+            is_monthly (bool, optional): Request monthly values. Defaults to True.
+            is_daily (bool, optional): Request daily values. Defaults to False.
+            start_date (int, optional): Start day for daily data. Defaults to 1.
+            start_month (int, optional): Start month for the data range. Defaults to 1.
+            start_year (int, optional): Start year for the data range. Defaults to 2020.
+            end_date (int, optional): End day for daily data. Defaults to 1.
+            end_month (int, optional): End month for the data range. Defaults to 12.
+            end_year (int, optional): End year for the data range. Defaults to 2020.
 
         Returns:
             None

@@ -6,6 +6,7 @@ webdriver_manager = "*"
 
 [dev-packages]
 pytest = "*"
+pytest-cov = "*"
 flake8 = "*"
 black = "*"
 freezegun = "*"
