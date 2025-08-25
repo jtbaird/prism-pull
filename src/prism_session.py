@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import datetime
+from dateutil.relativedelta import relativedelta
 import os
 import logging
 
@@ -40,6 +41,17 @@ def check_years(year):
     if year < 1895 or year > present:
         raise ValueError(f"Year must be between 1895 and {present}.")
 
+def is_within_past_6_months(year, month, date):
+    now = datetime.datetime.now()
+    # Calculate the year and month 6 months ago
+    six_months_ago_year = now.year
+    six_months_ago_month = now.month - 6
+    if six_months_ago_month <= 0:
+        six_months_ago_month += 12
+        six_months_ago_year -= 1
+    six_months_ago = datetime.datetime(six_months_ago_year, six_months_ago_month, 1)
+    target = datetime.datetime(year, month, date)
+    return target >= six_months_ago
 
 class PrismSession:
     def __init__(self, download_dir=CWD, driver_wait=5):
@@ -318,7 +330,7 @@ class PrismSession:
         self,
         latitude,
         longitude,
-        start_month,
+        month,
         start_year,
         end_year,
         precipitation=True,
@@ -335,7 +347,7 @@ class PrismSession:
         Args:
             latitude (float): Latitude of the location.
             longitude (float): Longitude of the location.
-            start_month (int): Month data to be retrieved for each year from start_year to end_year (inclusive).
+            month (int): Month data to be retrieved for each year from start_year to end_year (inclusive).
             start_year (int): Year for the data.
             end_year (int): End year for the data.
             precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
@@ -351,6 +363,8 @@ class PrismSession:
         """
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
+        if end_year == datetime.datetime.now().year and is_within_past_6_months(end_year, month, 1):
+            logger.warning("Data within past 6 months is provisional and may be subject to revision.")
 
         self.submit_coordinates(
             latitude,
@@ -364,7 +378,7 @@ class PrismSession:
             mean_dewpoint_temp=mean_dewpoint_temp,
             is_monthly=False,
             is_single_month=True,
-            start_month=start_month,
+            start_month=month,
             start_year=start_year,
             end_year=end_year,
         )
@@ -412,6 +426,8 @@ class PrismSession:
             raise ValueError(
                 "Start month must be less than or equal to end month when years are equal."
             )
+        if end_year == datetime.datetime.now().year and is_within_past_6_months(end_year, end_month, 1):
+            logger.warning("Data within past 6 months is provisional and may be subject to revision.")
 
         self.submit_coordinates(  ## don't need to set is_monthly bc defaults to True
             latitude,
@@ -480,6 +496,9 @@ class PrismSession:
             raise ValueError(
                 "Start day must be less than or equal to end day when months and years are equal."
             )
+        if end_year == datetime.datetime.now().year and is_within_past_6_months(end_year, end_month, 1):
+            logger.warning("Data within past 6 months is provisional and may be subject to revision.")
+
 
         self.submit_coordinates(
             latitude,
