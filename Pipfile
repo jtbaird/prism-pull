@@ -1,8 +1,5 @@
 [packages]
-geopandas = "*"
-shapely = "*"
 selenium = "*"
-webdriver_manager = "*"
 
 [dev-packages]
 pytest = "*"
@@ -10,6 +7,8 @@ pytest-cov = "*"
 flake8 = "*"
 black = "*"
 freezegun = "*"
+build = "*"
+twine = "*"
 
 [requires]
 python_version = "3.13"
