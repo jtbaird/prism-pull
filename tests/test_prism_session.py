@@ -78,8 +78,66 @@ def test_close(mock_webdriver):
     session.driver.quit.assert_called_once()
 
 
-def test_submit_coordinates():
-    pass
+@patch.object(ps.PrismSession, "_submit_and_download")
+@patch.object(ps.PrismSession, "_submit_and_download_bulk")
+@patch.object(ps.PrismSession, "_set_data_settings")
+@patch.object(ps.PrismSession, "_set_date_range")
+@patch.object(ps.PrismSession, "_set_coordinates")
+# @patch.object(ps.PrismSession, "_generate_partitions")
+@patch.object(ps.PrismSession, "_upload_csv")
+# @patch.object(ps.PrismSession, "_validate_csv")
+@patch.object(ps.PrismSession, "_validate_inputs")
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_submit_coordinates(
+    mock_chrome,
+    mock_validate_inputs,
+    # mock_validate_csv,
+    mock_upload_csv,
+    # mock_generate_partitions,
+    mock_set_coordinates,
+    mock_set_date_range,
+    mock_set_data_settings,
+    mock_submit_and_download_bulk,
+    mock_submit_and_download,
+):
+
+    session = ps.PrismSession()
+    session.driver = MagicMock()  # Prevents real browser usage
+
+    session.submit_coordinates(is_bulk_request=False)
+
+    mock_validate_inputs.assert_called_once()
+    assert mock_upload_csv.call_count == 0
+    mock_set_coordinates.assert_called_once_with(40.9473, -112.217)
+    mock_set_date_range.assert_called_once()
+    mock_set_data_settings.assert_called_once()
+    assert mock_submit_and_download_bulk.call_count == 0
+    mock_submit_and_download.assert_called_once()
+
+    # large bulk request case
+    session.submit_coordinates(
+        is_bulk_request=True, csv_path="tests/resources/large_coordinates.csv"
+    )
+    assert mock_validate_inputs.call_count == 2
+    assert mock_upload_csv.call_count == 2
+    mock_set_coordinates.assert_called_once()
+    assert mock_set_date_range.call_count == 2
+    assert mock_set_data_settings.call_count == 2
+    assert mock_submit_and_download_bulk.call_count == 2
+    mock_submit_and_download.assert_called_once()
+
+    # regular bulk request case
+    session.submit_coordinates(
+        is_bulk_request=True, csv_path="tests/resources/small_coordinates.csv"
+    )
+
+    assert mock_validate_inputs.call_count == 3
+    assert mock_upload_csv.call_count == 3
+    mock_set_coordinates.assert_called_once()
+    assert mock_set_date_range.call_count == 3
+    assert mock_set_data_settings.call_count == 3
+    assert mock_submit_and_download_bulk.call_count == 3
+    mock_submit_and_download.assert_called_once()
 
 
 def test_get_30_year_monthly_normals():
@@ -386,11 +444,18 @@ def test__validate_csv(mock_chrome):
 
     with pytest.raises(ValueError, match="CSV row 3 must have exactly 3 columns."):
         session._validate_csv("tests/resources/short_row.csv")
-    with pytest.raises(ValueError, match="First column in row 2 must be a float coordinate."):
+    with pytest.raises(
+        ValueError, match="First column in row 2 must be a float coordinate."
+    ):
         session._validate_csv("tests/resources/bad_first_column.csv")
-    with pytest.raises(ValueError, match="Second column in row 3 must be a float coordinate."):
+    with pytest.raises(
+        ValueError, match="Second column in row 3 must be a float coordinate."
+    ):
         session._validate_csv("tests/resources/bad_second_column.csv")
-    with pytest.raises(ValueError, match="Third column in row 4 must be a string of 12 or fewer characters."):
+    with pytest.raises(
+        ValueError,
+        match="Third column in row 4 must be a string of 12 or fewer characters.",
+    ):
         session._validate_csv("tests/resources/long_name.csv")
 
 
@@ -401,7 +466,7 @@ def test__upload_csv(mock_chrome, mock_wait):
     mock_element = MagicMock()
     mock_element.send_keys = MagicMock()
     mock_wait.return_value.until.return_value = mock_element
-    
+
     session._upload_csv("tests/resources/small_coordinates.csv")
 
     assert mock_element.send_keys.call_count == 1

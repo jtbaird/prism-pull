@@ -179,7 +179,7 @@ class PrismSession:
         if is_bulk_request:
             self.driver.get(self.bulk_url)
             logger.info("Validating CSV file...")
-            needs_partition = self._validate_csv(csv_path)
+            needs_partition = self._validate_csv(csv_path)  # _validate_csv returns True if row count is over 500
             if not needs_partition:
                 logger.info("Uploading CSV file...")
                 self._upload_csv(csv_path)
