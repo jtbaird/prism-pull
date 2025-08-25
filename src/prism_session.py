@@ -109,7 +109,461 @@ class PrismSession:
         self.driver.quit()
         logger.info("PRISM session closed.")
 
-    def submit_coordinates(
+    # WEATHER REQUESTS
+
+    def get_30_year_monthly_normals(
+        self,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+        cloud_transmittance=False,
+        solar_rad_horiz_sfc=False,
+        solar_rad_sloped_sfc=False,
+        solar_rad_clear_sky=False,
+    ):
+        """
+        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+            cloud_transmittance (bool, optional): Whether to include cloud transmittance data. Defaults to False.
+            solar_rad_horiz_sfc (bool, optional): Whether to include horizontal surface solar radiation data. Defaults to False.
+            solar_rad_sloped_sfc (bool, optional): Whether to include sloped surface solar radiation data. Defaults to False.
+            solar_rad_clear_sky (bool, optional): Whether to include clear sky solar radiation data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+
+        self._submit_coordinates(
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            cloud_transmittance=cloud_transmittance,
+            solar_rad_horiz_sfc=solar_rad_horiz_sfc,
+            solar_rad_sloped_sfc=solar_rad_sloped_sfc,
+            solar_rad_clear_sky=solar_rad_clear_sky,
+            is_monthly=False,
+            is_30_year_monthly=True,
+        )
+
+    def get_30_year_daily_normals(
+        self,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+    ):
+        """
+        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+
+        self._submit_coordinates(
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            is_monthly=False,
+            is_30_year_daily=True,
+        )
+
+    def get_annual_values(
+        self,
+        start_year,
+        end_year,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+    ):
+        """
+        Retrieves annual PRISM climate values for the specified coordinates and year range.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            start_year (int): Start year for the data range.
+            end_year (int): End year for the data range.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        if start_year > end_year:
+            raise ValueError("Start year must be less than or equal to end year.")
+
+        self._submit_coordinates(
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            is_monthly=False,
+            is_annual=True,
+            start_year=start_year,
+            end_year=end_year,
+        )
+
+    def get_single_month_values(
+        self,
+        month,
+        start_year,
+        end_year,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+    ):
+        """
+        Retrieves PRISM climate values for the given month for every year in the specified range for the specified coordinates.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            month (int): Month data to be retrieved for each year from start_year to end_year (inclusive).
+            start_year (int): Year for the data.
+            end_year (int): End year for the data.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        if start_year > end_year:
+            raise ValueError("Start year must be less than or equal to end year.")
+        if is_within_past_6_months(end_year, month, 1):
+            warnings.warn(
+                "Data within past 6 months is provisional and may be subject to revision."
+            )
+
+        self._submit_coordinates(
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            is_monthly=False,
+            is_single_month=True,
+            start_month=month,
+            start_year=start_year,
+            end_year=end_year,
+        )
+
+    def get_monthly_values(
+        self,
+        start_month,
+        start_year,
+        end_month,
+        end_year,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+    ):
+        """
+        Retrieves monthly PRISM climate values for the specified coordinates and time range.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            start_month (int): Start month for the data range.
+            start_year (int): Start year for the data range.
+            end_month (int): End month for the data range.
+            end_year (int): End year for the data range.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        if start_year > end_year:
+            raise ValueError("Start year must be less than or equal to end year.")
+        if start_year == end_year and start_month > end_month:
+            raise ValueError(
+                "Start month must be less than or equal to end month when years are equal."
+            )
+        if is_within_past_6_months(end_year, end_month, 1):
+            warnings.warn(
+                "Data within past 6 months is provisional and may be subject to revision."
+            )
+
+        self._submit_coordinates(  ## don't need to set is_monthly bc defaults to True
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            start_month=start_month,
+            start_year=start_year,
+            end_month=end_month,
+            end_year=end_year,
+        )
+
+    def get_daily_values(
+        self,
+        start_date,
+        start_month,
+        start_year,
+        end_date,
+        end_month,
+        end_year,
+        latitude=None,
+        longitude=None,
+        csv_path=None,
+        precipitation=True,
+        min_temp=False,
+        mean_temp=True,
+        max_temp=False,
+        min_vpd=False,
+        max_vpd=False,
+        mean_dewpoint_temp=False,
+    ):
+        """
+        Submits a request for daily climate data for the specified coordinates and time range.
+
+        Args:
+            latitude (float): Latitude of the location.
+            longitude (float): Longitude of the location.
+            start_date (int): Start date for the data range. Defaults to 1.
+            start_month (int): Start month for the data range. Defaults to 1.
+            start_year (int): Start year for the data range. Defaults to 2000.
+            end_date (int): End date for the data range. Defaults to 31.
+            end_month (int): End month for the data range. Defaults to 12.
+            end_year (int): End year for the data range. Defaults to 2020.
+            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
+            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
+            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
+            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
+            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
+            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
+            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
+
+        Returns:
+            None
+        """
+        if csv_path:
+            logger.info(f"Processing bulk request with CSV: {csv_path}")
+            is_bulk_request = True
+            if not os.path.isabs(csv_path):
+                logger.info("Converting CSV path to absolute path...")
+                csv_path = os.path.abspath(csv_path)
+        elif latitude is not None and longitude is not None:
+            logger.info(
+                f"Processing single coordinate request: {latitude}, {longitude}"
+            )
+            is_bulk_request = False
+        else:
+            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        if start_year > end_year:
+            raise ValueError("Start year must be less than or equal to end year.")
+        if start_year == end_year and start_month > end_month:
+            raise ValueError(
+                "Start month must be less than or equal to end month when years are equal."
+            )
+        if (
+            start_year == end_year
+            and start_month == end_month
+            and start_date > end_date
+        ):
+            raise ValueError(
+                "Start date must be less than or equal to end date when months and years are equal."
+            )
+        if is_within_past_6_months(end_year, end_month, 1):
+            warnings.warn(
+                "Data within past 6 months is provisional and may be subject to revision."
+            )
+
+        self._submit_coordinates(
+            latitude=latitude,
+            longitude=longitude,
+            csv_path=csv_path,
+            is_bulk_request=is_bulk_request,
+            precipitation=precipitation,
+            min_temp=min_temp,
+            mean_temp=mean_temp,
+            max_temp=max_temp,
+            min_vpd=min_vpd,
+            max_vpd=max_vpd,
+            mean_dewpoint_temp=mean_dewpoint_temp,
+            is_monthly=False,
+            is_daily=True,
+            start_date=start_date,
+            start_month=start_month,
+            start_year=start_year,
+            end_date=end_date,
+            end_month=end_month,
+            end_year=end_year,
+        )
+
+    # PRIVATE METHODS
+    def _submit_coordinates(
         self,
         is_bulk_request,
         latitude=40.9473,
@@ -247,461 +701,6 @@ class PrismSession:
                 self._submit_and_download_bulk()
         else:
             self._submit_and_download()
-
-    # WEATHER REQUESTS
-
-    def get_30_year_monthly_normals(
-        self,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-        cloud_transmittance=False,
-        solar_rad_horiz_sfc=False,
-        solar_rad_sloped_sfc=False,
-        solar_rad_clear_sky=False,
-    ):
-        """
-        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-            cloud_transmittance (bool, optional): Whether to include cloud transmittance data. Defaults to False.
-            solar_rad_horiz_sfc (bool, optional): Whether to include horizontal surface solar radiation data. Defaults to False.
-            solar_rad_sloped_sfc (bool, optional): Whether to include sloped surface solar radiation data. Defaults to False.
-            solar_rad_clear_sky (bool, optional): Whether to include clear sky solar radiation data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-
-        self.submit_coordinates(
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            cloud_transmittance=cloud_transmittance,
-            solar_rad_horiz_sfc=solar_rad_horiz_sfc,
-            solar_rad_sloped_sfc=solar_rad_sloped_sfc,
-            solar_rad_clear_sky=solar_rad_clear_sky,
-            is_monthly=False,
-            is_30_year_monthly=True,
-        )
-
-    def get_30_year_daily_normals(
-        self,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-    ):
-        """
-        Retrieves PRISM baseline datasets describing average monthly and annual conditions over the most recent three full decades.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-
-        self.submit_coordinates(
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            is_monthly=False,
-            is_30_year_daily=True,
-        )
-
-    def get_annual_values(
-        self,
-        start_year,
-        end_year,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-    ):
-        """
-        Retrieves annual PRISM climate values for the specified coordinates and year range.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            start_year (int): Start year for the data range.
-            end_year (int): End year for the data range.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-        if start_year > end_year:
-            raise ValueError("Start year must be less than or equal to end year.")
-
-        self.submit_coordinates(
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            is_monthly=False,
-            is_annual=True,
-            start_year=start_year,
-            end_year=end_year,
-        )
-
-    def get_single_month_values(
-        self,
-        month,
-        start_year,
-        end_year,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-    ):
-        """
-        Retrieves PRISM climate values for the given month for every year in the specified range for the specified coordinates.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            month (int): Month data to be retrieved for each year from start_year to end_year (inclusive).
-            start_year (int): Year for the data.
-            end_year (int): End year for the data.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-        if start_year > end_year:
-            raise ValueError("Start year must be less than or equal to end year.")
-        if is_within_past_6_months(end_year, month, 1):
-            warnings.warn(
-                "Data within past 6 months is provisional and may be subject to revision."
-            )
-
-        self.submit_coordinates(
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            is_monthly=False,
-            is_single_month=True,
-            start_month=month,
-            start_year=start_year,
-            end_year=end_year,
-        )
-
-    def get_monthly_values(
-        self,
-        start_month,
-        start_year,
-        end_month,
-        end_year,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-    ):
-        """
-        Retrieves monthly PRISM climate values for the specified coordinates and time range.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            start_month (int): Start month for the data range.
-            start_year (int): Start year for the data range.
-            end_month (int): End month for the data range.
-            end_year (int): End year for the data range.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-        if start_year > end_year:
-            raise ValueError("Start year must be less than or equal to end year.")
-        if start_year == end_year and start_month > end_month:
-            raise ValueError(
-                "Start month must be less than or equal to end month when years are equal."
-            )
-        if is_within_past_6_months(end_year, end_month, 1):
-            warnings.warn(
-                "Data within past 6 months is provisional and may be subject to revision."
-            )
-
-        self.submit_coordinates(  ## don't need to set is_monthly bc defaults to True
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            start_month=start_month,
-            start_year=start_year,
-            end_month=end_month,
-            end_year=end_year,
-        )
-
-    def get_daily_values(
-        self,
-        start_date,
-        start_month,
-        start_year,
-        end_date,
-        end_month,
-        end_year,
-        latitude=None,
-        longitude=None,
-        csv_path=None,
-        precipitation=True,
-        min_temp=False,
-        mean_temp=True,
-        max_temp=False,
-        min_vpd=False,
-        max_vpd=False,
-        mean_dewpoint_temp=False,
-    ):
-        """
-        Submits a request for daily climate data for the specified coordinates and time range.
-
-        Args:
-            latitude (float): Latitude of the location.
-            longitude (float): Longitude of the location.
-            start_date (int): Start date for the data range. Defaults to 1.
-            start_month (int): Start month for the data range. Defaults to 1.
-            start_year (int): Start year for the data range. Defaults to 2000.
-            end_date (int): End date for the data range. Defaults to 31.
-            end_month (int): End month for the data range. Defaults to 12.
-            end_year (int): End year for the data range. Defaults to 2020.
-            precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
-            min_temp (bool, optional): Whether to include minimum temperature data. Defaults to False.
-            mean_temp (bool, optional): Whether to include mean temperature data. Defaults to False.
-            max_temp (bool, optional): Whether to include maximum temperature data. Defaults to False.
-            min_vpd (bool, optional): Whether to include minimum vapor pressure deficit data. Defaults to False.
-            max_vpd (bool, optional): Whether to include maximum vapor pressure deficit data. Defaults to False.
-            mean_dewpoint_temp (bool, optional): Whether to include mean dewpoint temperature data. Defaults to False.
-
-        Returns:
-            None
-        """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
-        if start_year > end_year:
-            raise ValueError("Start year must be less than or equal to end year.")
-        if start_year == end_year and start_month > end_month:
-            raise ValueError(
-                "Start month must be less than or equal to end month when years are equal."
-            )
-        if (
-            start_year == end_year
-            and start_month == end_month
-            and start_date > end_date
-        ):
-            raise ValueError(
-                "Start date must be less than or equal to end date when months and years are equal."
-            )
-        if is_within_past_6_months(end_year, end_month, 1):
-            warnings.warn(
-                "Data within past 6 months is provisional and may be subject to revision."
-            )
-
-        self.submit_coordinates(
-            latitude=latitude,
-            longitude=longitude,
-            csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
-            precipitation=precipitation,
-            min_temp=min_temp,
-            mean_temp=mean_temp,
-            max_temp=max_temp,
-            min_vpd=min_vpd,
-            max_vpd=max_vpd,
-            mean_dewpoint_temp=mean_dewpoint_temp,
-            is_monthly=False,
-            is_daily=True,
-            start_date=start_date,
-            start_month=start_month,
-            start_year=start_year,
-            end_date=end_date,
-            end_month=end_month,
-            end_year=end_year,
-        )
-
-    # PRIVATE METHODS
 
     def _validate_inputs(
         self, start_date, start_month, start_year, end_date, end_month, end_year

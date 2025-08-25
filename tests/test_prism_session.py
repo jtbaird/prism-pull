@@ -100,7 +100,7 @@ def test_submit_coordinates(
     session = ps.PrismSession()
     session.driver = MagicMock()
 
-    session.submit_coordinates(is_bulk_request=False)
+    session._submit_coordinates(is_bulk_request=False)
 
     mock_validate_inputs.assert_called_once()
     assert mock_upload_csv.call_count == 0
@@ -111,7 +111,7 @@ def test_submit_coordinates(
     mock_submit_and_download.assert_called_once()
 
     # large bulk request case
-    session.submit_coordinates(
+    session._submit_coordinates(
         is_bulk_request=True, csv_path="tests/resources/large_coordinates.csv"
     )
     assert mock_validate_inputs.call_count == 2
@@ -123,7 +123,7 @@ def test_submit_coordinates(
     mock_submit_and_download.assert_called_once()
 
     # regular bulk request case
-    session.submit_coordinates(
+    session._submit_coordinates(
         is_bulk_request=True, csv_path="tests/resources/small_coordinates.csv"
     )
 
@@ -136,7 +136,7 @@ def test_submit_coordinates(
     mock_submit_and_download.assert_called_once()
 
 
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
@@ -157,7 +157,7 @@ def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
         session.get_30_year_daily_normals()
 
 
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
@@ -178,7 +178,7 @@ def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
         session.get_30_year_daily_normals()
 
 
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_annual_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
@@ -208,7 +208,7 @@ def test_get_annual_values(mock_chrome, mock_submit_coordinates):
 
 
 @freeze_time("2025-01-01")
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
@@ -256,7 +256,7 @@ def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
 
 
 @freeze_time("2025-01-01")
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
@@ -314,7 +314,7 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
 
 
 @freeze_time("2025-01-01")
-@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_daily_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
