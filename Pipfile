@@ -8,6 +8,7 @@ webdriver_manager = "*"
 pytest = "*"
 flake8 = "*"
 black = "*"
+freezegun = "*"
 
 [requires]
 python_version = "3.13"

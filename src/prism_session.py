@@ -7,7 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import datetime
-from dateutil.relativedelta import relativedelta
 import os
 import logging
 import csv
@@ -25,16 +24,20 @@ def check_months(month):
         raise ValueError("Month must be between 1 and 12.")
 
 
-def check_days(day, month):
-    if month == 2:
-        if day < 1 or day > 29:
-            raise ValueError("Day must be between 1 and 29 for February.")
+def check_dates(date, month, year):
+    is_leap_year = year % 4 == 0
+    if is_leap_year and month == 2:
+        if date < 1 or date > 29:
+            raise ValueError("Date must be between 0 and 30 for February in a leap year.")
+    elif not is_leap_year and month == 2:
+        if date < 1 or date > 28:
+            raise ValueError("Date must be between 0 and 29 for February in non leap year.")
     elif month in [4, 6, 9, 11]:
-        if day < 1 or day > 30:
-            raise ValueError("Day must be between 1 and 30 for this month.")
+        if date < 1 or date > 30:
+            raise ValueError("Date must be between 0 and 31 for this month.")
     else:
-        if day < 1 or day > 31:
-            raise ValueError("Day must be between 1 and 31.")
+        if date < 1 or date > 31:
+            raise ValueError("Date must be between 0 and 32 for this month.")
 
 
 def check_years(year):
@@ -124,10 +127,10 @@ class PrismSession:
         is_single_month=False,
         is_monthly=True,
         is_daily=False,
-        start_day=1,
+        start_date=1,
         start_month=1,
         start_year=2020,
-        end_day=1,
+        end_date=1,
         end_month=12,
         end_year=2020,
     ):
@@ -144,7 +147,7 @@ class PrismSession:
 
         # Validate date inputs
         self._validate_inputs(
-            start_day, start_month, start_year, end_day, end_month, end_year
+            start_date, start_month, start_year, end_date, end_month, end_year
         )
 
         # open browser and switch to coordinate location mode
@@ -172,10 +175,10 @@ class PrismSession:
             is_single_month,
             is_monthly,
             is_daily,
-            start_day,
+            start_date,
             start_month,
             start_year,
-            end_day,
+            end_date,
             end_month,
             end_year,
         )
@@ -576,10 +579,10 @@ class PrismSession:
 
     def get_daily_values(
         self,
-        start_day,
+        start_date,
         start_month,
         start_year,
-        end_day,
+        end_date,
         end_month,
         end_year,
         latitude=None,
@@ -599,10 +602,10 @@ class PrismSession:
         Args:
             latitude (float): Latitude of the location.
             longitude (float): Longitude of the location.
-            start_day (int): Start day for the data range. Defaults to 1.
+            start_date (int): Start date for the data range. Defaults to 1.
             start_month (int): Start month for the data range. Defaults to 1.
             start_year (int): Start year for the data range. Defaults to 2000.
-            end_day (int): End day for the data range. Defaults to 31.
+            end_date (int): End date for the data range. Defaults to 31.
             end_month (int): End month for the data range. Defaults to 12.
             end_year (int): End year for the data range. Defaults to 2020.
             precipitation (bool, optional): Whether to include precipitation data. Defaults to True.
@@ -635,9 +638,9 @@ class PrismSession:
             raise ValueError(
                 "Start month must be less than or equal to end month when years are equal."
             )
-        if start_year == end_year and start_month == end_month and start_day > end_day:
+        if start_year == end_year and start_month == end_month and start_date > end_date:
             raise ValueError(
-                "Start day must be less than or equal to end day when months and years are equal."
+                "Start date must be less than or equal to end date when months and years are equal."
             )
         if end_year == datetime.datetime.now().year and is_within_past_6_months(
             end_year, end_month, 1
@@ -660,10 +663,10 @@ class PrismSession:
             mean_dewpoint_temp=mean_dewpoint_temp,
             is_monthly=False,
             is_daily=True,
-            start_day=start_day,
+            start_date=start_date,
             start_month=start_month,
             start_year=start_year,
-            end_day=end_day,
+            end_date=end_date,
             end_month=end_month,
             end_year=end_year,
         )
@@ -671,10 +674,10 @@ class PrismSession:
     # PRIVATE METHODS
 
     def _validate_inputs(
-        self, start_day, start_month, start_year, end_day, end_month, end_year
+        self, start_date, start_month, start_year, end_date, end_month, end_year
     ):
-        check_days(start_day, start_month)
-        check_days(end_day, end_month)
+        check_dates(start_date, start_month, start_year)
+        check_dates(end_date, end_month, end_year)
         check_months(start_month)
         check_months(end_month)
         check_years(start_year)
@@ -706,10 +709,10 @@ class PrismSession:
         is_single_month,
         is_monthly,
         is_daily,
-        start_day,
+        start_date,
         start_month,
         start_year,
-        end_day,
+        end_date,
         end_month,
         end_year,
     ):
@@ -735,10 +738,10 @@ class PrismSession:
             end_year_id = "tper_onemonth_end_year"
         elif is_daily:
             date_id = "tper_daily"
-            start_date_id = "tper_daily_start_day"
+            start_date_id = "tper_daily_start_date"
             start_month_id = "tper_daily_start_month"
             start_year_id = "tper_daily_start_year"
-            end_date_id = "tper_daily_end_day"
+            end_date_id = "tper_daily_end_date"
             end_month_id = "tper_daily_end_month"
             end_year_id = "tper_daily_end_year"
 
@@ -783,19 +786,19 @@ class PrismSession:
 
                     if not is_monthly:
                         logger.info(
-                            f"Selecting start day: {start_day} and end day: {end_day}"
+                            f"Selecting start date: {start_date} and end date: {end_date}"
                         )
                         start_date_dropdown = WebDriverWait(
                             self.driver, self.driver_wait
                         ).until(EC.presence_of_element_located((By.ID, start_date_id)))
                         select_start_date = Select(start_date_dropdown)
-                        select_start_date.select_by_value(str(start_day))
+                        select_start_date.select_by_value(str(start_date))
 
                         end_date_dropdown = WebDriverWait(
                             self.driver, self.driver_wait
                         ).until(EC.presence_of_element_located((By.ID, end_date_id)))
                         select_end_date = Select(end_date_dropdown)
-                        select_end_date.select_by_value(str(end_day))
+                        select_end_date.select_by_value(str(end_date))
 
     def _set_data_settings(
         self,
