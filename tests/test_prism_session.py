@@ -6,64 +6,6 @@ import src.prism_session as ps
 import os
 
 
-# HELPER FUNCTION TESTS
-def test_check_months():
-    result = ps.check_months(6)
-    assert result is None
-    with pytest.raises(ValueError, match="Month must be between 1 and 12."):
-        ps.check_months(0)
-    with pytest.raises(ValueError, match="Month must be between 1 and 12."):
-        ps.check_months(13)
-
-
-def test_check_dates():
-    result = ps.check_dates(3, 2, 2020)
-    assert result is None
-    result = ps.check_dates(16, 11, 1995)
-    assert result is None
-    result = ps.check_dates(31, 10, 2021)
-    assert result is None
-    with pytest.raises(
-        ValueError, match="Date must be between 0 and 30 for February in a leap year."
-    ):
-        ps.check_dates(30, 2, 2020)
-    with pytest.raises(
-        ValueError, match="Date must be between 0 and 29 for February in non leap year."
-    ):
-        ps.check_dates(29, 2, 2021)
-    with pytest.raises(
-        ValueError, match="Date must be between 0 and 32 for this month."
-    ):
-        ps.check_dates(32, 10, 2021)
-    with pytest.raises(
-        ValueError, match="Date must be between 0 and 31 for this month."
-    ):
-        ps.check_dates(31, 11, 2021)
-
-
-def test_check_years():
-    present = int(datetime.datetime.now().year)
-    result = ps.check_years(1995)
-    assert result is None
-    with pytest.raises(ValueError, match=f"Year must be between 1895 and {present}."):
-        ps.check_years(1894)
-    with pytest.raises(ValueError, match=f"Year must be between 1895 and {present}."):
-        ps.check_years(3000)
-
-
-@freeze_time("2025-01-01")
-def test_is_within_past_6_months():
-    assert ps.is_within_past_6_months(2024, 12, 1) is True
-    assert ps.is_within_past_6_months(2020, 1, 2) is False
-
-
-def test_is_string_float():
-    assert ps.is_string_float("3.14")
-    assert not ps.is_string_float("abc")
-    assert not ps.is_string_float("[1, 2, 3]")
-    assert not ps.is_string_float("{'key': 'value'}")
-
-
 # PUBLIC METHOD TESTS
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_prism_session_init(mock_chrome):
@@ -399,7 +341,7 @@ def test__validate_inputs(mock_chrome):
     )
     assert result is None
 
-    # case where check_months fails
+    # case where _check_months fails
     with pytest.raises(ValueError, match="Month must be between 1 and 12."):
         session._validate_inputs(
             start_date=1,
@@ -409,7 +351,7 @@ def test__validate_inputs(mock_chrome):
             end_month=12,
             end_year=2020,
         )
-    # case where check_dates fails
+    # case where _check_dates fails
     with pytest.raises(
         ValueError, match="Date must be between 0 and 30 for February in a leap year."
     ):
@@ -421,7 +363,7 @@ def test__validate_inputs(mock_chrome):
             end_month=12,
             end_year=2020,
         )
-    # case where check_years fails
+    # case where _check_years fails
     with pytest.raises(ValueError, match="Year must be between 1895 and 2025."):
         session._validate_inputs(
             start_date=1,
@@ -713,3 +655,70 @@ def test__submit_and_download_bulk(mock_chrome, mock_wait):
     session._submit_and_download_bulk()
 
     assert mock_element.click.call_count == 1
+
+
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test__check_months(mock_chrome):
+    session = ps.PrismSession()
+    result = session._check_months(6)
+    assert result is None
+    with pytest.raises(ValueError, match="Month must be between 1 and 12."):
+        session._check_months(0)
+    with pytest.raises(ValueError, match="Month must be between 1 and 12."):
+        session._check_months(13)
+
+
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test__check_dates(mock_chrome):
+    session = ps.PrismSession()
+    result = session._check_dates(3, 2, 2020)
+    assert result is None
+    result = session._check_dates(16, 11, 1995)
+    assert result is None
+    result = session._check_dates(31, 10, 2021)
+    assert result is None
+    with pytest.raises(
+        ValueError, match="Date must be between 0 and 30 for February in a leap year."
+    ):
+        session._check_dates(30, 2, 2020)
+    with pytest.raises(
+        ValueError, match="Date must be between 0 and 29 for February in non leap year."
+    ):
+        session._check_dates(29, 2, 2021)
+    with pytest.raises(
+        ValueError, match="Date must be between 0 and 32 for this month."
+    ):
+        session._check_dates(32, 10, 2021)
+    with pytest.raises(
+        ValueError, match="Date must be between 0 and 31 for this month."
+    ):
+        session._check_dates(31, 11, 2021)
+
+
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_check_years(mock_chrome):
+    session = ps.PrismSession()
+    present = int(datetime.datetime.now().year)
+    result = session._check_years(1995)
+    assert result is None
+    with pytest.raises(ValueError, match=f"Year must be between 1895 and {present}."):
+        session._check_years(1894)
+    with pytest.raises(ValueError, match=f"Year must be between 1895 and {present}."):
+        session._check_years(3000)
+
+
+@freeze_time("2025-01-01")
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_is_within_past_6_months(mock_chrome):
+    session = ps.PrismSession()
+    assert session._is_within_past_6_months(2024, 12, 1) is True
+    assert session._is_within_past_6_months(2020, 1, 2) is False
+
+
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_is_string_float(mock_chrome):
+    session = ps.PrismSession()
+    assert session._is_string_float("3.14")
+    assert not session._is_string_float("abc")
+    assert not session._is_string_float("[1, 2, 3]")
+    assert not session._is_string_float("{'key': 'value'}")

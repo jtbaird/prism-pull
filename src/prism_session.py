@@ -20,58 +20,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def check_months(month):
-    if month < 1 or month > 12:
-        raise ValueError("Month must be between 1 and 12.")
-
-
-def check_dates(date, month, year):
-    is_leap_year = year % 4 == 0
-    if is_leap_year and month == 2:
-        if date < 1 or date > 29:
-            raise ValueError(
-                "Date must be between 0 and 30 for February in a leap year."
-            )
-    elif not is_leap_year and month == 2:
-        if date < 1 or date > 28:
-            raise ValueError(
-                "Date must be between 0 and 29 for February in non leap year."
-            )
-    elif month in [4, 6, 9, 11]:
-        if date < 1 or date > 30:
-            raise ValueError("Date must be between 0 and 31 for this month.")
-    else:
-        if date < 1 or date > 31:
-            raise ValueError("Date must be between 0 and 32 for this month.")
-
-
-def check_years(year):
-    present = int(datetime.datetime.now().year)
-    if year < 1895 or year > present:
-        raise ValueError(f"Year must be between 1895 and {present}.")
-
-
-def is_within_past_6_months(year, month, date):
-    now = datetime.datetime.now()
-    # Calculate the year and month 6 months ago
-    six_months_ago_year = now.year
-    six_months_ago_month = now.month - 6
-    if six_months_ago_month <= 0:
-        six_months_ago_month += 12
-        six_months_ago_year -= 1
-    six_months_ago = datetime.datetime(six_months_ago_year, six_months_ago_month, 1)
-    target = datetime.datetime(year, month, date)
-    return target >= six_months_ago
-
-
-def is_string_float(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
 class PrismSession:
     def __init__(self, download_dir=CWD, driver_wait=5):
         """
@@ -110,7 +58,6 @@ class PrismSession:
         logger.info("PRISM session closed.")
 
     # WEATHER REQUESTS
-
     def get_30_year_monthly_normals(
         self,
         latitude=None,
@@ -362,7 +309,7 @@ class PrismSession:
             raise ValueError("Either CSV path or latitude/longitude must be provided.")
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
-        if is_within_past_6_months(end_year, month, 1):
+        if self._is_within_past_6_months(end_year, month, 1):
             warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
@@ -443,7 +390,7 @@ class PrismSession:
             raise ValueError(
                 "Start month must be less than or equal to end month when years are equal."
             )
-        if is_within_past_6_months(end_year, end_month, 1):
+        if self._is_within_past_6_months(end_year, end_month, 1):
             warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
@@ -535,7 +482,7 @@ class PrismSession:
             raise ValueError(
                 "Start date must be less than or equal to end date when months and years are equal."
             )
-        if is_within_past_6_months(end_year, end_month, 1):
+        if self._is_within_past_6_months(end_year, end_month, 1):
             warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
@@ -705,12 +652,12 @@ class PrismSession:
     def _validate_inputs(
         self, start_date, start_month, start_year, end_date, end_month, end_year
     ):
-        check_dates(start_date, start_month, start_year)
-        check_dates(end_date, end_month, end_year)
-        check_months(start_month)
-        check_months(end_month)
-        check_years(start_year)
-        check_years(end_year)
+        self._check_dates(start_date, start_month, start_year)
+        self._check_dates(end_date, end_month, end_year)
+        self._check_months(start_month)
+        self._check_months(end_month)
+        self._check_years(start_year)
+        self._check_years(end_year)
 
     def _set_coordinates(self, latitude, longitude):
         coordinate_button = WebDriverWait(self.driver, self.driver_wait).until(
@@ -892,11 +839,11 @@ class PrismSession:
                     raise ValueError(
                         f"CSV row {row_count} must have exactly 3 columns."
                     )
-                if not is_string_float(row[0]):
+                if not self._is_string_float(row[0]):
                     raise ValueError(
                         f"First column in row {row_count} must be a float coordinate."
                     )
-                if not is_string_float(row[1]):
+                if not self._is_string_float(row[1]):
                     raise ValueError(
                         f"Second column in row {row_count} must be a float coordinate."
                     )
@@ -957,3 +904,50 @@ class PrismSession:
             EC.element_to_be_clickable((By.ID, "submitdown_button"))
         ).click()
         time.sleep(self.driver_wait)  # Wait for download to complete
+
+    def _check_months(self, month):
+        if month < 1 or month > 12:
+            raise ValueError("Month must be between 1 and 12.")
+
+    def _check_dates(self, date, month, year):
+        is_leap_year = year % 4 == 0
+        if is_leap_year and month == 2:
+            if date < 1 or date > 29:
+                raise ValueError(
+                    "Date must be between 0 and 30 for February in a leap year."
+                )
+        elif not is_leap_year and month == 2:
+            if date < 1 or date > 28:
+                raise ValueError(
+                    "Date must be between 0 and 29 for February in non leap year."
+                )
+        elif month in [4, 6, 9, 11]:
+            if date < 1 or date > 30:
+                raise ValueError("Date must be between 0 and 31 for this month.")
+        else:
+            if date < 1 or date > 31:
+                raise ValueError("Date must be between 0 and 32 for this month.")
+
+    def _check_years(self, year):
+        present = int(datetime.datetime.now().year)
+        if year < 1895 or year > present:
+            raise ValueError(f"Year must be between 1895 and {present}.")
+
+    def _is_within_past_6_months(self, year, month, date):
+        now = datetime.datetime.now()
+        # Calculate the year and month 6 months ago
+        six_months_ago_year = now.year
+        six_months_ago_month = now.month - 6
+        if six_months_ago_month <= 0:
+            six_months_ago_month += 12
+            six_months_ago_year -= 1
+        six_months_ago = datetime.datetime(six_months_ago_year, six_months_ago_month, 1)
+        target = datetime.datetime(year, month, date)
+        return target >= six_months_ago
+
+    def _is_string_float(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
