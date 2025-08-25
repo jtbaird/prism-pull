@@ -59,7 +59,7 @@ def is_within_past_6_months(year, month, date):
     return target >= six_months_ago
 
 
-def is_float_string(value):
+def is_string_float(value):
     try:
         float(value)
         return True
@@ -885,14 +885,14 @@ class PrismSession:
             for row in reader:
                 row_count += 1
                 if len(row) != 3:
-                    raise ValueError("CSV row must have exactly 3 columns.")
-                if not is_float_string(row[0]):
-                    raise ValueError("First column must be a float coordinate.")
-                if not is_float_string(row[1]):
-                    raise ValueError("Second column must be a float coordinate.")
+                    raise ValueError(f"CSV row {row_count} must have exactly 3 columns.")
+                if not is_string_float(row[0]):
+                    raise ValueError(f"First column in row {row_count} must be a float coordinate.")
+                if not is_string_float(row[1]):
+                    raise ValueError(f"Second column in row {row_count} must be a float coordinate.")
                 if len(row[2]) > 12:
                     raise ValueError(
-                        "Third column must be a string of 12 or fewer characters."
+                        f"Third column in row {row_count} must be a string of 12 or fewer characters."
                     )
 
             logger.info(f"CSV validation passed for {row_count} rows.")
@@ -905,9 +905,6 @@ class PrismSession:
 
     def _upload_csv(self, csv_path):
         """Uploads a CSV file to the bulk request form."""
-        # upload_button = WebDriverWait(self.driver, self.driver_wait).until(
-        #     EC.element_to_be_clickable((By.ID, "upload_locations"))
-        # )
         file_input = WebDriverWait(self.driver, self.driver_wait).until(
             EC.presence_of_element_located((By.ID, "locations_file"))
         )
