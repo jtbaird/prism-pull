@@ -66,13 +66,13 @@ def test_is_string_float():
 
 # PUBLIC METHOD TESTS
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test_prism_session_init(mock_webdriver):
+def test_prism_session_init(mock_chrome):
     session = ps.PrismSession()
     assert isinstance(session.driver, MagicMock)
 
 
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test_close(mock_webdriver):
+def test_close(mock_chrome):
     session = ps.PrismSession()
     session.close()
     session.driver.quit.assert_called_once()
@@ -83,17 +83,13 @@ def test_close(mock_webdriver):
 @patch.object(ps.PrismSession, "_set_data_settings")
 @patch.object(ps.PrismSession, "_set_date_range")
 @patch.object(ps.PrismSession, "_set_coordinates")
-# @patch.object(ps.PrismSession, "_generate_partitions")
 @patch.object(ps.PrismSession, "_upload_csv")
-# @patch.object(ps.PrismSession, "_validate_csv")
 @patch.object(ps.PrismSession, "_validate_inputs")
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_submit_coordinates(
     mock_chrome,
     mock_validate_inputs,
-    # mock_validate_csv,
     mock_upload_csv,
-    # mock_generate_partitions,
     mock_set_coordinates,
     mock_set_date_range,
     mock_set_data_settings,
@@ -102,7 +98,7 @@ def test_submit_coordinates(
 ):
 
     session = ps.PrismSession()
-    session.driver = MagicMock()  # Prevents real browser usage
+    session.driver = MagicMock()
 
     session.submit_coordinates(is_bulk_request=False)
 
@@ -140,34 +136,258 @@ def test_submit_coordinates(
     mock_submit_and_download.assert_called_once()
 
 
-def test_get_30_year_monthly_normals():
-    pass
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_30_year_monthly_normals(
+        csv_path="tests/resources/small_coordinates.csv"
+    )
+    assert result is None
+
+    result = session.get_30_year_monthly_normals(latitude=40.9473, longitude=-112.2170)
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_30_year_daily_normals()
 
 
-def test_get_30_year_daily_normals():
-    pass
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_30_year_daily_normals(
+        csv_path="tests/resources/small_coordinates.csv"
+    )
+    assert result is None
+
+    result = session.get_30_year_daily_normals(latitude=40.9473, longitude=-112.2170)
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_30_year_daily_normals()
 
 
-def test_get_annual_values():
-    pass
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_annual_values(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_annual_values(
+        csv_path="tests/resources/small_coordinates.csv", start_year=2020, end_year=2020
+    )
+    assert result is None
+
+    result = session.get_annual_values(
+        latitude=40.9473, longitude=-112.2170, start_year=2020, end_year=2020
+    )
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_annual_values(start_year=2022, end_year=2020)
+    with pytest.raises(
+        ValueError, match="Start year must be less than or equal to end year."
+    ):
+        session.get_annual_values(
+            latitude=40.9473, longitude=-112.2170, start_year=2022, end_year=2020
+        )
 
 
-def test_get_single_month_values():
-    pass
+@freeze_time("2025-01-01")
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_single_month_values(
+        csv_path="tests/resources/small_coordinates.csv",
+        month=6,
+        start_year=2020,
+        end_year=2021,
+    )
+    assert result is None
+
+    result = session.get_single_month_values(
+        latitude=40.9473, longitude=-112.2170, month=6, start_year=2020, end_year=2021
+    )
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_single_month_values(month=6, start_year=2020, end_year=2021)
+    with pytest.raises(
+        ValueError, match="Start year must be less than or equal to end year."
+    ):
+        session.get_single_month_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            month=6,
+            start_year=2022,
+            end_year=2021,
+        )
+    with pytest.warns(
+        Warning,
+        match="Data within past 6 months is provisional and may be subject to revision.",
+    ):
+        session.get_single_month_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            month=12,
+            start_year=2020,
+            end_year=2024,
+        )
 
 
-def test_get_monthly_values():
-    pass
+@freeze_time("2025-01-01")
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_monthly_values(
+        csv_path="tests/resources/small_coordinates.csv",
+        start_month=1,
+        start_year=2020,
+        end_month=12,
+        end_year=2020,
+    )
+    assert result is None
+
+    result = session.get_monthly_values(
+        latitude=40.9473,
+        longitude=-112.2170,
+        start_month=1,
+        start_year=2020,
+        end_month=12,
+        end_year=2020,
+    )
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_monthly_values(
+            start_month=1, start_year=2020, end_month=12, end_year=2020
+        )
+    with pytest.raises(
+        ValueError, match="Start year must be less than or equal to end year."
+    ):
+        session.get_monthly_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            start_month=1,
+            start_year=3000,
+            end_month=12,
+            end_year=2020,
+        )
+    with pytest.warns(
+        Warning,
+        match="Data within past 6 months is provisional and may be subject to revision.",
+    ):
+        session.get_monthly_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            start_month=1,
+            start_year=2020,
+            end_month=12,
+            end_year=2024,
+        )
 
 
-def test_get_daily_values():
-    pass
+@freeze_time("2025-01-01")
+@patch.object(ps.PrismSession, "submit_coordinates", return_value=True)
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test_get_daily_values(mock_chrome, mock_submit_coordinates):
+    session = ps.PrismSession()
+    session.driver = MagicMock()
+    mock_submit_coordinates.return_value = None
+
+    result = session.get_daily_values(
+        csv_path="tests/resources/small_coordinates.csv",
+        start_date=1,
+        start_month=1,
+        start_year=2020,
+        end_date=31,
+        end_month=12,
+        end_year=2020,
+    )
+    assert result is None
+
+    result = session.get_daily_values(
+        latitude=40.9473,
+        longitude=-112.2170,
+        start_date=1,
+        start_month=1,
+        start_year=2020,
+        end_date=31,
+        end_month=12,
+        end_year=2020,
+    )
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="Either CSV path or latitude/longitude must be provided."
+    ):
+        session.get_daily_values(
+            start_date=1,
+            start_month=1,
+            start_year=2020,
+            end_date=31,
+            end_month=12,
+            end_year=2020,
+        )
+    with pytest.raises(
+        ValueError, match="Start year must be less than or equal to end year."
+    ):
+        session.get_daily_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            start_date=31,
+            start_month=12,
+            start_year=2027,
+            end_date=1,
+            end_month=1,
+            end_year=2020,
+        )
+    with pytest.warns(
+        Warning,
+        match="Data within past 6 months is provisional and may be subject to revision.",
+    ):
+        session.get_daily_values(
+            latitude=40.9473,
+            longitude=-112.2170,
+            start_date=31,
+            start_month=12,
+            start_year=2020,
+            end_date=1,
+            end_month=12,
+            end_year=2024,
+        )
 
 
 # PRIVATE METHOD TESTS
 @freeze_time("2025-01-01")
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test__validate_inputs(mock_webdriver):
+def test__validate_inputs(mock_chrome):
     session = ps.PrismSession()
     result = session._validate_inputs(
         start_date=1,
@@ -215,7 +435,7 @@ def test__validate_inputs(mock_webdriver):
 
 @patch("src.prism_session.WebDriverWait")
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test__set_coordinates(mock_webdriver, mock_wait):
+def test__set_coordinates(mock_chrome, mock_wait):
     session = ps.PrismSession()
     mock_element = MagicMock()
     mock_element.click = MagicMock()
@@ -233,7 +453,7 @@ def test__set_coordinates(mock_webdriver, mock_wait):
 @patch("src.prism_session.Select")
 @patch("src.prism_session.WebDriverWait")
 @patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test__set_date_range(mock_webdriver, mock_wait, mock_select):
+def test__set_date_range(mock_chrome, mock_wait, mock_select):
     session = ps.PrismSession()
 
     until_mocks = []

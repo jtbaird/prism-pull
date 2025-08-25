@@ -10,6 +10,7 @@ import datetime
 import os
 import logging
 import csv
+import warnings
 
 BULK_URL = "https://prism.oregonstate.edu/explorer/bulk.php"
 SINGLE_URL = "https://prism.oregonstate.edu/explorer/"
@@ -28,10 +29,14 @@ def check_dates(date, month, year):
     is_leap_year = year % 4 == 0
     if is_leap_year and month == 2:
         if date < 1 or date > 29:
-            raise ValueError("Date must be between 0 and 30 for February in a leap year.")
+            raise ValueError(
+                "Date must be between 0 and 30 for February in a leap year."
+            )
     elif not is_leap_year and month == 2:
         if date < 1 or date > 28:
-            raise ValueError("Date must be between 0 and 29 for February in non leap year.")
+            raise ValueError(
+                "Date must be between 0 and 29 for February in non leap year."
+            )
     elif month in [4, 6, 9, 11]:
         if date < 1 or date > 30:
             raise ValueError("Date must be between 0 and 31 for this month.")
@@ -179,7 +184,9 @@ class PrismSession:
         if is_bulk_request:
             self.driver.get(self.bulk_url)
             logger.info("Validating CSV file...")
-            needs_partition = self._validate_csv(csv_path)  # _validate_csv returns True if row count is over 500
+            needs_partition = self._validate_csv(
+                csv_path
+            )  # _validate_csv returns True if row count is over 500
             if not needs_partition:
                 logger.info("Uploading CSV file...")
                 self._upload_csv(csv_path)
@@ -241,7 +248,7 @@ class PrismSession:
         else:
             self._submit_and_download()
 
-    # SINGLE COORDINATE PAIR REQUESTS
+    # WEATHER REQUESTS
 
     def get_30_year_monthly_normals(
         self,
@@ -494,10 +501,8 @@ class PrismSession:
             raise ValueError("Either CSV path or latitude/longitude must be provided.")
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
-        if end_year == datetime.datetime.now().year and is_within_past_6_months(
-            end_year, month, 1
-        ):
-            logger.warning(
+        if is_within_past_6_months(end_year, month, 1):
+            warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
 
@@ -577,10 +582,8 @@ class PrismSession:
             raise ValueError(
                 "Start month must be less than or equal to end month when years are equal."
             )
-        if end_year == datetime.datetime.now().year and is_within_past_6_months(
-            end_year, end_month, 1
-        ):
-            logger.warning(
+        if is_within_past_6_months(end_year, end_month, 1):
+            warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
 
@@ -663,14 +666,16 @@ class PrismSession:
             raise ValueError(
                 "Start month must be less than or equal to end month when years are equal."
             )
-        if start_year == end_year and start_month == end_month and start_date > end_date:
+        if (
+            start_year == end_year
+            and start_month == end_month
+            and start_date > end_date
+        ):
             raise ValueError(
                 "Start date must be less than or equal to end date when months and years are equal."
             )
-        if end_year == datetime.datetime.now().year and is_within_past_6_months(
-            end_year, end_month, 1
-        ):
-            logger.warning(
+        if is_within_past_6_months(end_year, end_month, 1):
+            warnings.warn(
                 "Data within past 6 months is provisional and may be subject to revision."
             )
 
@@ -885,11 +890,17 @@ class PrismSession:
             for row in reader:
                 row_count += 1
                 if len(row) != 3:
-                    raise ValueError(f"CSV row {row_count} must have exactly 3 columns.")
+                    raise ValueError(
+                        f"CSV row {row_count} must have exactly 3 columns."
+                    )
                 if not is_string_float(row[0]):
-                    raise ValueError(f"First column in row {row_count} must be a float coordinate.")
+                    raise ValueError(
+                        f"First column in row {row_count} must be a float coordinate."
+                    )
                 if not is_string_float(row[1]):
-                    raise ValueError(f"Second column in row {row_count} must be a float coordinate.")
+                    raise ValueError(
+                        f"Second column in row {row_count} must be a float coordinate."
+                    )
                 if len(row[2]) > 12:
                     raise ValueError(
                         f"Third column in row {row_count} must be a string of 12 or fewer characters."
