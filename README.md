@@ -314,6 +314,7 @@ session.get_daily_values(
 )
 ```
 ## Testing
+This repo uses pytest for testing. In order to run locally, execute the following from the terminal:
 ```
 pytest tests
 ```
