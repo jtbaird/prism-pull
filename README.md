@@ -315,4 +315,4 @@ This repo uses pytest for testing. In order to run locally, execute the followin
 pytest tests
 ```
 ## Contributing
-If you want to add to this, shoot me an email at jtbaird95@gmail.com and we can talk about adding you as a collaborator.
+If you work on this repo as a collaborator, shoot me an email at jtbaird95@gmail.com.
