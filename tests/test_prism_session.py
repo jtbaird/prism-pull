@@ -615,6 +615,11 @@ def test__validate_csv(mock_chrome):
         match="Third column in row 4 must be a string of 12 or fewer characters.",
     ):
         session._validate_csv("tests/resources/long_name.csv")
+    with pytest.raises(
+        ValueError,
+        match="CSV has only one row. Please submit in single coordinate mode.",
+    ):
+        session._validate_csv("tests/resources/single_row.csv")
 
 
 @patch("src.prism_pull.prism_session.WebDriverWait")

@@ -583,13 +583,52 @@ class PrismSession:
         if is_bulk_request:
             if needs_partition:
                 logger.info("Submitting and downloading multi part bulk data...")
-                for part in partitions:
-                    self._upload_csv(part)
-                    logger.info(
-                        f"Submitting and downloading data for partition: {part}"
-                    )
-                    self._submit_and_download_bulk()
-                    logger.info(f"Removing temporary CSV file: {part}")
+                for part in partitions.keys():
+                    if partitions[part] > 1:
+                        self._upload_csv(part)
+                        logger.info(
+                            f"Submitting and downloading data for partition: {part}"
+                        )
+                        self._submit_and_download_bulk()
+                        logger.info(f"Removing temporary CSV file: {part}")
+                    else:
+                        logger.info(
+                            "Single row partition detected. Submitting as coordinate pair..."
+                        )
+                        with open(part, newline="") as csvfile:
+                            reader = csv.reader(csvfile)
+                            for row in reader:
+                                lat = float(row[0])
+                                lon = float(row[1])
+                        self._submit_coordinates(
+                            is_bulk_request=False,
+                            latitude=lat,
+                            longitude=lon,
+                            precipitation=precipitation,
+                            min_temp=min_temp,
+                            mean_temp=mean_temp,
+                            max_temp=max_temp,
+                            min_vpd=min_vpd,
+                            max_vpd=max_vpd,
+                            mean_dewpoint_temp=mean_dewpoint_temp,
+                            cloud_transmittance=cloud_transmittance,
+                            solar_rad_horiz_sfc=solar_rad_horiz_sfc,
+                            solar_rad_sloped_sfc=solar_rad_sloped_sfc,
+                            solar_rad_clear_sky=solar_rad_clear_sky,
+                            is_30_year_monthly=is_30_year_monthly,
+                            is_30_year_daily=is_30_year_daily,
+                            is_annual=is_annual,
+                            is_single_month=is_single_month,
+                            is_monthly=is_monthly,
+                            is_daily=is_daily,
+                            start_date=start_date,
+                            start_month=start_month,
+                            start_year=start_year,
+                            end_date=end_date,
+                            end_month=end_month,
+                            end_year=end_year,
+                        )
+
                     os.remove(part)
             else:
                 logger.info("Submitting and downloading single part bulk data...")
@@ -804,6 +843,10 @@ class PrismSession:
             if row_count > 500:
                 logger.info("CSV is greater than 500 row max. Partitioning required.")
                 return True
+            elif row_count == 1:
+                raise ValueError(
+                    "CSV has only one row. Please submit in single coordinate mode."
+                )
             else:
                 logger.info("CSV is within the row limits.")
                 return False
@@ -823,12 +866,14 @@ class PrismSession:
             reader = csv.reader(infile)
             partition_number = 1
             rows = []
-            partitions = []
+            partitions = {}
             for row in reader:
                 rows.append(row)
                 if len(rows) == 500:
                     output_path = f"{csv_path}_{partition_number}.csv"
-                    partitions.append(output_path)
+                    if not os.path.isabs(csv_path):
+                        output_path = os.path.abspath(output_path)
+                    partitions[output_path] = len(rows)
                     with open(output_path, "w", newline="") as outfile:
                         writer = csv.writer(outfile)
                         writer.writerows(rows)
@@ -837,7 +882,7 @@ class PrismSession:
             # Write any remaining rows
             if rows:
                 output_path = f"{csv_path}_{partition_number}.csv"
-                partitions.append(output_path)
+                partitions[output_path] = len(rows)
                 with open(output_path, "w", newline="") as outfile:
                     writer = csv.writer(outfile)
                     writer.writerows(rows)
