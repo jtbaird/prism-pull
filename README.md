@@ -1,5 +1,5 @@
 # prism-pull
-prism-pull is a python package made to pull data from PRISM Group using web automation. For those not familiar with PRISM, via the the [PRISM website](https://prism.nacse.org/):
+prism-pull is a python package made to pull data from PRISM Group using web automation. For those not familiar with PRISM Group, via the [PRISM website](https://prism.nacse.org/):
 ```
 The PRISM Group gathers weather observations from a wide range of monitoring networks, applies
 sophisticated quality control measures, and develops spatial datasets to reveal short- and 
@@ -26,6 +26,7 @@ Prerequisites:
 - pip
 - Google Chrome
 - Python3.10 or higher
+
 Install with: `pip install prism-pull`
 ## Usage
 Remember to follow the [PRISM Group](https://prism.nacse.org/terms/) terms of use for whatever your project may be. Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
@@ -39,12 +40,12 @@ one class and it's associated getter methods, as well as a method to close your 
     - get_monthly_values
     - get_daily_values
 
-Each method has two to three required arguments which are common to all of them. They are:
-- is_bulk_request
+Each getter method has two to three required arguments which are common to all of them. They are:
+- **is_bulk_request**
     - Set to True if you are providing a .csv for bulk location request. False otherise.
-    - If set to True, you must provide a string csv_path.
-    - If set to False, you must provide int/float latitude and longitude.
-- csv_path
+        - If set to True, you must provide a string csv_path.
+        - If set to False, you must provide int/float latitude and longitude.
+- **csv_path**
     - A string path pointing to the .csv you want to use for a bulk request.
     - Your .csv input should have three columns:
         - Column 1: 
@@ -53,9 +54,9 @@ Each method has two to three required arguments which are common to all of them.
             - longitude: int/float
         - Column 3: 
             - name: string fewer than 13 characters in length
-- latitude
+- **latitude**
     - An integer or floating point latitude coordinate.
-- longitude
+- **longitude**
     - An integer of floating point longitude coordinate.
 ### PrismSession
 Generate a new PrismSession:
@@ -65,12 +66,13 @@ import prism_pull.prism_session as pp
 session = pp.PrismSession()
 ```
 Your PrismSession object can be initialized with two optional arguments:
-- download_dir:
+- **download_dir**:
     - The directory where prism-pull will download the results of your PRISM queries.
-    - default: your current working directory
-- driver_wait:
+    - **Default:** your current working directory
+- **driver_wait**:
     - The time (in seconds) prism-pull web driver will wait before moving onto the next step. Consider increasing if you have poor download speeds.
-    - default: 5 seconds
+    - **Default:** 5 seconds
+
 Here's an example of setting up a session with these arguments:
 ```
 import prism_pull.prism_session as pp
@@ -89,7 +91,7 @@ session = pp.PrismSession()
 session.close()
 ```
 ### get_30_year_monthly_normals
-Returns the average monthly conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns the average monthly conditions over the previous three decades for the provided **latitude** and **longitude** or **csv_path**. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
@@ -127,7 +129,7 @@ session.get_30_year_monthly_normals(
 )
 ```
 ### get_30_year_daily_normals
-Returns the average daily conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns the average daily conditions over the previous three decades for the provided **latitude** and **longitude** or **csv_path**. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
@@ -160,7 +162,7 @@ session.get_30_year_daily_normals(
 )
 ```
 ### get_annual_values
-Returns data for selected measurements in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns average or total data for selected measurements for each year from **start_year** to **end_year**, for the provided **latitude** and **longitude** or **csv_path**. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
@@ -199,7 +201,9 @@ session.get_annual_values(
 )
 ```
 ### get_single_month_values
-Returns data for selected measurements for a given month each year in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns average or total data for selected measurements for each **month** each year from **start_year** to **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** any data collected within the past six months is considered provisional and may be subject to revisions. 
+
+Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
@@ -238,7 +242,9 @@ session.get_single_month_values(
 )
 ```
 ### get_monthly_values
-Returns monthly data for selected measurements for each month between the starting month and year, to ending month and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns average or total data for selected measurements for every month from **start_month**, **start_year** to **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** any data collected within the past six months is considered provisional and may be subject to revisions. 
+
+Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
@@ -280,7 +286,9 @@ session.get_monthly_values(
 )
 ```
 ### get_daily_values
-Returns daily data for selected measurements for each dat between the starting date, month, and year, to ending date, month, and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+Returns average or total data for selected measurements for each day from start_date, **start_month**, **start_year** to **end_date**, **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** any data collected within the past six months is considered provisional and may be subject to revisions.
+
+Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
 import prism_pull.prism_session as pp
 
