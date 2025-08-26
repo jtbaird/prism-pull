@@ -86,17 +86,14 @@ def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_30_year_monthly_normals(
-        csv_path="tests/resources/small_coordinates.csv"
+        is_bulk_request=True, csv_path="tests/resources/small_coordinates.csv"
     )
     assert result is None
 
-    result = session.get_30_year_monthly_normals(latitude=40.9473, longitude=-112.2170)
+    result = session.get_30_year_monthly_normals(
+        is_bulk_request=False, latitude=40.9473, longitude=-112.2170
+    )
     assert result is None
-
-    with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_30_year_daily_normals()
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
@@ -107,17 +104,14 @@ def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_30_year_daily_normals(
-        csv_path="tests/resources/small_coordinates.csv"
+        is_bulk_request=True, csv_path="tests/resources/small_coordinates.csv"
     )
     assert result is None
 
-    result = session.get_30_year_daily_normals(latitude=40.9473, longitude=-112.2170)
+    result = session.get_30_year_daily_normals(
+        is_bulk_request=False, latitude=40.9473, longitude=-112.2170
+    )
     assert result is None
-
-    with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_30_year_daily_normals()
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
@@ -128,24 +122,31 @@ def test_get_annual_values(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_annual_values(
-        csv_path="tests/resources/small_coordinates.csv", start_year=2020, end_year=2020
+        is_bulk_request=True,
+        csv_path="tests/resources/small_coordinates.csv",
+        start_year=2020,
+        end_year=2020,
     )
     assert result is None
 
     result = session.get_annual_values(
-        latitude=40.9473, longitude=-112.2170, start_year=2020, end_year=2020
+        is_bulk_request=False,
+        latitude=40.9473,
+        longitude=-112.2170,
+        start_year=2020,
+        end_year=2020,
     )
     assert result is None
 
     with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_annual_values(start_year=2022, end_year=2020)
-    with pytest.raises(
         ValueError, match="Start year must be less than or equal to end year."
     ):
         session.get_annual_values(
-            latitude=40.9473, longitude=-112.2170, start_year=2022, end_year=2020
+            is_bulk_request=False,
+            latitude=40.9473,
+            longitude=-112.2170,
+            start_year=2022,
+            end_year=2020,
         )
 
 
@@ -158,6 +159,7 @@ def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_single_month_values(
+        is_bulk_request=True,
         csv_path="tests/resources/small_coordinates.csv",
         month=6,
         start_year=2020,
@@ -166,18 +168,20 @@ def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
     assert result is None
 
     result = session.get_single_month_values(
-        latitude=40.9473, longitude=-112.2170, month=6, start_year=2020, end_year=2021
+        is_bulk_request=False,
+        latitude=40.9473,
+        longitude=-112.2170,
+        month=6,
+        start_year=2020,
+        end_year=2021,
     )
     assert result is None
 
     with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_single_month_values(month=6, start_year=2020, end_year=2021)
-    with pytest.raises(
         ValueError, match="Start year must be less than or equal to end year."
     ):
         session.get_single_month_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             month=6,
@@ -189,6 +193,7 @@ def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
         match="Data within past 6 months is provisional and may be subject to revision.",
     ):
         session.get_single_month_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             month=12,
@@ -206,6 +211,7 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_monthly_values(
+        is_bulk_request=True,
         csv_path="tests/resources/small_coordinates.csv",
         start_month=1,
         start_year=2020,
@@ -215,6 +221,7 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
     assert result is None
 
     result = session.get_monthly_values(
+        is_bulk_request=False,
         latitude=40.9473,
         longitude=-112.2170,
         start_month=1,
@@ -225,15 +232,10 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
     assert result is None
 
     with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_monthly_values(
-            start_month=1, start_year=2020, end_month=12, end_year=2020
-        )
-    with pytest.raises(
         ValueError, match="Start year must be less than or equal to end year."
     ):
         session.get_monthly_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             start_month=1,
@@ -246,6 +248,7 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
         match="Data within past 6 months is provisional and may be subject to revision.",
     ):
         session.get_monthly_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             start_month=1,
@@ -264,6 +267,7 @@ def test_get_daily_values(mock_chrome, mock_submit_coordinates):
     mock_submit_coordinates.return_value = None
 
     result = session.get_daily_values(
+        is_bulk_request=True,
         csv_path="tests/resources/small_coordinates.csv",
         start_date=1,
         start_month=1,
@@ -275,6 +279,7 @@ def test_get_daily_values(mock_chrome, mock_submit_coordinates):
     assert result is None
 
     result = session.get_daily_values(
+        is_bulk_request=False,
         latitude=40.9473,
         longitude=-112.2170,
         start_date=1,
@@ -287,20 +292,10 @@ def test_get_daily_values(mock_chrome, mock_submit_coordinates):
     assert result is None
 
     with pytest.raises(
-        ValueError, match="Either CSV path or latitude/longitude must be provided."
-    ):
-        session.get_daily_values(
-            start_date=1,
-            start_month=1,
-            start_year=2020,
-            end_date=31,
-            end_month=12,
-            end_year=2020,
-        )
-    with pytest.raises(
         ValueError, match="Start year must be less than or equal to end year."
     ):
         session.get_daily_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             start_date=31,
@@ -315,6 +310,7 @@ def test_get_daily_values(mock_chrome, mock_submit_coordinates):
         match="Data within past 6 months is provisional and may be subject to revision.",
     ):
         session.get_daily_values(
+            is_bulk_request=False,
             latitude=40.9473,
             longitude=-112.2170,
             start_date=31,
@@ -722,3 +718,40 @@ def test_is_string_float(mock_chrome):
     assert not session._is_string_float("abc")
     assert not session._is_string_float("[1, 2, 3]")
     assert not session._is_string_float("{'key': 'value'}")
+
+
+@patch("src.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test__check_loc_and_download_type(mock_chrome):
+    session = ps.PrismSession()
+
+    result = session._check_loc_and_download_type(
+        True, "tests/resources/small_coordinates.csv", None, None
+    )
+    assert result is None
+    result = session._check_loc_and_download_type(False, None, 40.9473, -112.2170)
+    assert result is None
+
+    with pytest.raises(
+        ValueError, match="CSV path must be a string, not <class 'NoneType'>."
+    ):
+        session._check_loc_and_download_type(True, None, None, None)
+    with pytest.raises(
+        ValueError, match="CSV path must be a string, not <class 'int'>."
+    ):
+        session._check_loc_and_download_type(True, 123, None, None)
+    with pytest.raises(
+        ValueError, match="Latitude and longitude must be numeric values."
+    ):
+        session._check_loc_and_download_type(False, None, None, None)
+    with pytest.raises(
+        ValueError, match="Latitude and longitude must be numeric values."
+    ):
+        session._check_loc_and_download_type(False, None, "not_a_number", None)
+    with pytest.raises(
+        ValueError, match="Latitude and longitude must be numeric values."
+    ):
+        session._check_loc_and_download_type(False, None, None, "not_a_number")
+    with pytest.raises(ValueError, match="is_bulk_request must be a boolean value."):
+        session._check_loc_and_download_type(
+            "not_a_boolean", None, "not_a_number", "not_a_number"
+        )

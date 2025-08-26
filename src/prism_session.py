@@ -60,6 +60,7 @@ class PrismSession:
     # WEATHER REQUESTS
     def get_30_year_monthly_normals(
         self,
+        is_bulk_request: bool,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -96,25 +97,15 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
 
         self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -132,6 +123,7 @@ class PrismSession:
 
     def get_30_year_daily_normals(
         self,
+        is_bulk_request: bool,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -160,25 +152,15 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
 
         self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -192,6 +174,7 @@ class PrismSession:
 
     def get_annual_values(
         self,
+        is_bulk_request: bool,
         start_year,
         end_year,
         latitude=None,
@@ -224,27 +207,18 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
+
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
 
         self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -260,6 +234,7 @@ class PrismSession:
 
     def get_single_month_values(
         self,
+        is_bulk_request: bool,
         month,
         start_year,
         end_year,
@@ -294,19 +269,10 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
+
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
         if self._is_within_past_6_months(end_year, month, 1):
@@ -315,10 +281,10 @@ class PrismSession:
             )
 
         self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -335,6 +301,7 @@ class PrismSession:
 
     def get_monthly_values(
         self,
+        is_bulk_request: bool,
         start_month,
         start_year,
         end_month,
@@ -371,19 +338,9 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
         if start_year == end_year and start_month > end_month:
@@ -395,11 +352,11 @@ class PrismSession:
                 "Data within past 6 months is provisional and may be subject to revision."
             )
 
-        self._submit_coordinates(  ## don't need to set is_monthly bc defaults to True
+        self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -415,6 +372,7 @@ class PrismSession:
 
     def get_daily_values(
         self,
+        is_bulk_request: bool,
         start_date,
         start_month,
         start_year,
@@ -455,19 +413,9 @@ class PrismSession:
         Returns:
             None
         """
-        if csv_path:
-            logger.info(f"Processing bulk request with CSV: {csv_path}")
-            is_bulk_request = True
-            if not os.path.isabs(csv_path):
-                logger.info("Converting CSV path to absolute path...")
-                csv_path = os.path.abspath(csv_path)
-        elif latitude is not None and longitude is not None:
-            logger.info(
-                f"Processing single coordinate request: {latitude}, {longitude}"
-            )
-            is_bulk_request = False
-        else:
-            raise ValueError("Either CSV path or latitude/longitude must be provided.")
+        self._check_loc_and_download_type(
+            is_bulk_request, csv_path, latitude, longitude
+        )
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
         if start_year == end_year and start_month > end_month:
@@ -488,10 +436,10 @@ class PrismSession:
             )
 
         self._submit_coordinates(
+            is_bulk_request=is_bulk_request,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
-            is_bulk_request=is_bulk_request,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -951,3 +899,28 @@ class PrismSession:
             return True
         except ValueError:
             return False
+
+    def _check_loc_and_download_type(
+        self, is_bulk_request, csv_path, latitude, longitude
+    ):
+        if isinstance(is_bulk_request, bool):
+            if is_bulk_request:
+                if not isinstance(csv_path, str):
+                    input_type = type(csv_path)
+                    raise ValueError(f"CSV path must be a string, not {input_type}.")
+                else:
+                    logger.info(f"Processing bulk request with CSV: {csv_path}")
+                    if not os.path.isabs(csv_path):
+                        logger.info("Converting CSV path to absolute path...")
+                        csv_path = os.path.abspath(csv_path)
+            else:
+                if not isinstance(latitude, (int, float)) or not isinstance(
+                    longitude, (int, float)
+                ):
+                    raise ValueError("Latitude and longitude must be numeric values.")
+                else:
+                    logger.info(
+                        f"Processing single coordinate request: {latitude}, {longitude}"
+                    )
+        else:
+            raise ValueError("is_bulk_request must be a boolean value.")
