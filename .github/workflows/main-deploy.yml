@@ -1,0 +1,29 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Build wheel
+        run: python3 -m build
+
+      - name: Upload to remote
+        run: twine upload --repository-url https://upload.pypi.org/legacy/ dist/*

@@ -1,13 +1,11 @@
 name: Python Tests
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  test:
+  run-python-tests:
     runs-on: ubuntu-latest
 
     steps:
