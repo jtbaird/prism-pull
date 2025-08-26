@@ -24,7 +24,7 @@ jobs:
         run: pipenv install --dev
 
       - name: Run tests with coverage
-        run: PYTHONPATH=src pipenv run pytest --cov=prism_pull --cov-report=term --cov-fail-under=80
+        run: pipenv run pytest --cov=src --cov-report=term --cov-fail-under=80
 
       - name: Check release number
         run: pipenv run python .github/scripts/release_candidate.py

@@ -2,18 +2,18 @@ import pytest
 from unittest.mock import patch, MagicMock
 from freezegun import freeze_time
 import datetime
-import prism_pull.src.prism_session as ps
+import src.prism_pull.prism_session as ps
 import os
 
 
 # PUBLIC METHOD TESTS
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_prism_session_init(mock_chrome):
     session = ps.PrismSession()
     assert isinstance(session.driver, MagicMock)
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_close(mock_chrome):
     session = ps.PrismSession()
     session.close()
@@ -27,7 +27,7 @@ def test_close(mock_chrome):
 @patch.object(ps.PrismSession, "_set_coordinates")
 @patch.object(ps.PrismSession, "_upload_csv")
 @patch.object(ps.PrismSession, "_validate_inputs")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_submit_coordinates(
     mock_chrome,
     mock_validate_inputs,
@@ -79,7 +79,7 @@ def test_submit_coordinates(
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -97,7 +97,7 @@ def test_get_30_year_monthly_normals(mock_chrome, mock_submit_coordinates):
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -115,7 +115,7 @@ def test_get_30_year_daily_normals(mock_chrome, mock_submit_coordinates):
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_annual_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -152,7 +152,7 @@ def test_get_annual_values(mock_chrome, mock_submit_coordinates):
 
 @freeze_time("2025-01-01")
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -204,7 +204,7 @@ def test_get_single_month_values(mock_chrome, mock_submit_coordinates):
 
 @freeze_time("2025-01-01")
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -260,7 +260,7 @@ def test_get_monthly_values(mock_chrome, mock_submit_coordinates):
 
 @freeze_time("2025-01-01")
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_get_daily_values(mock_chrome, mock_submit_coordinates):
     session = ps.PrismSession()
     session.driver = MagicMock()
@@ -324,7 +324,7 @@ def test_get_daily_values(mock_chrome, mock_submit_coordinates):
 
 # PRIVATE METHOD TESTS
 @freeze_time("2025-01-01")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__validate_inputs(mock_chrome):
     session = ps.PrismSession()
     result = session._validate_inputs(
@@ -371,8 +371,8 @@ def test__validate_inputs(mock_chrome):
         )
 
 
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__set_coordinates(mock_chrome, mock_wait):
     session = ps.PrismSession()
     mock_element = MagicMock()
@@ -388,9 +388,9 @@ def test__set_coordinates(mock_chrome, mock_wait):
     assert mock_element.send_keys.call_count == 2
 
 
-@patch("prism_pull.src.prism_session.Select")
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.Select")
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__set_date_range(mock_chrome, mock_wait, mock_select):
     session = ps.PrismSession()
 
@@ -532,8 +532,8 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
     assert mock_select.return_value.select_by_value.call_count == 15
 
 
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__set_data_settings(mock_chrome, mock_wait):
     session = ps.PrismSession()
     mock_element = MagicMock()
@@ -573,8 +573,8 @@ def test__set_data_settings(mock_chrome, mock_wait):
     assert mock_element.click.call_count == 11
 
 
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__submit_and_download(mock_chrome, mock_wait):
     session = ps.PrismSession()
     mock_element = MagicMock()
@@ -586,7 +586,7 @@ def test__submit_and_download(mock_chrome, mock_wait):
     assert mock_element.click.call_count == 2
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__validate_csv(mock_chrome):
     session = ps.PrismSession()
 
@@ -617,8 +617,8 @@ def test__validate_csv(mock_chrome):
         session._validate_csv("tests/resources/long_name.csv")
 
 
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__upload_csv(mock_chrome, mock_wait):
     session = ps.PrismSession()
     mock_element = MagicMock()
@@ -630,7 +630,7 @@ def test__upload_csv(mock_chrome, mock_wait):
     assert mock_element.send_keys.call_count == 1
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__generate_partitions(mock_chrome):
     session = ps.PrismSession()
     partitions = session._generate_partitions("tests/resources/large_coordinates.csv")
@@ -640,8 +640,8 @@ def test__generate_partitions(mock_chrome):
     os.remove("tests/resources/large_coordinates.csv_2.csv")
 
 
-@patch("prism_pull.src.prism_session.WebDriverWait")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__submit_and_download_bulk(mock_chrome, mock_wait):
     session = ps.PrismSession(driver_wait=0)
     mock_element = MagicMock()
@@ -653,7 +653,7 @@ def test__submit_and_download_bulk(mock_chrome, mock_wait):
     assert mock_element.click.call_count == 1
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__check_months(mock_chrome):
     session = ps.PrismSession()
     result = session._check_months(6)
@@ -664,7 +664,7 @@ def test__check_months(mock_chrome):
         session._check_months(13)
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__check_dates(mock_chrome):
     session = ps.PrismSession()
     result = session._check_dates(3, 2, 2020)
@@ -691,7 +691,7 @@ def test__check_dates(mock_chrome):
         session._check_dates(31, 11, 2021)
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_check_years(mock_chrome):
     session = ps.PrismSession()
     present = int(datetime.datetime.now().year)
@@ -704,14 +704,14 @@ def test_check_years(mock_chrome):
 
 
 @freeze_time("2025-01-01")
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_is_within_past_6_months(mock_chrome):
     session = ps.PrismSession()
     assert session._is_within_past_6_months(2024, 12, 1) is True
     assert session._is_within_past_6_months(2020, 1, 2) is False
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test_is_string_float(mock_chrome):
     session = ps.PrismSession()
     assert session._is_string_float("3.14")
@@ -720,7 +720,7 @@ def test_is_string_float(mock_chrome):
     assert not session._is_string_float("{'key': 'value'}")
 
 
-@patch("prism_pull.src.prism_session.webdriver.Chrome", return_value=MagicMock())
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__check_loc_and_download_type(mock_chrome):
     session = ps.PrismSession()
 
