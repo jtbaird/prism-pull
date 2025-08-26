@@ -26,7 +26,7 @@ jobs:
         run: pipenv install --dev
 
       - name: Build wheel
-        run: python3 -m build
+        run: pipenv run python3 -m build
 
       - name: Upload to remote
-        run: twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+        run: pipenv run twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
