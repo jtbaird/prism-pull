@@ -1,7 +1,11 @@
 # prism-pull
 prism-pull is a python package made to pull data from PRISM Group via web automation. Via the the [PRISM website](https://prism.nacse.org/):
 ```
-The PRISM Group gathers weather observations from a wide range of monitoring networks, applies sophisticated quality control measures, and develops spatial datasets to reveal short- and long-term weather patterns. The resulting datasets incorporate a variety of modeling techniques and are available at multiple spatial/temporal resolutions, covering the period from 1895 to the present. 
+The PRISM Group gathers weather observations from a wide range of monitoring networks, applies
+ sophisticated quality control measures, and develops spatial datasets to reveal short- and 
+ long-term weather patterns. The resulting datasets incorporate a variety of modeling techniques 
+ and are available at multiple spatial/temporal resolutions, covering the period from 1895 to 
+ the present. 
 ```
 The types of weather data consist of:
 - precipitaion totals
