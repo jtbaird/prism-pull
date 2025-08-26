@@ -25,7 +25,7 @@ Prerequisites:
     - Working on finding lowest compatible python version at the moment.
 Install with: `pip install prism-pull`
 ## Usage
-Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
+Remember to follow the [PRISM Group](https://prism.nacse.org/terms/) terms of use for whatever your project may be. Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
 one class, and it's associated getter methods:
 - PrismSession
     - get_30_year_monthly_normals
@@ -34,6 +34,25 @@ one class, and it's associated getter methods:
     - get_single_month_values
     - get_monthly_values
     - get_daily_values
+
+Each method has two to three required arguments which are common to all of them. They are:
+- is_bulk_request
+    - Set to True if you are providing a .csv for bulk location request. False otherise.
+    - If set to True, you must provide a string csv_path.
+    - If set to False, you must provide int/float latitude and longitude.
+- csv_path
+    - A string path pointing to the .csv you want to use for a bulk request.
+    - Your .csv input should have three columns:
+        - Column 1: 
+            - latitude: int/float
+        - Column 2: 
+            - longitude: int/float
+        - Column 3: 
+            - name: string fewer than 13 characters in length
+- latitude
+    - An integer or floating point latitude coordinate.
+- longitude
+    - An integer of floating point longitude coordinate.
 ### PrismSession
 Generate a new PrismSession:
 ```
@@ -55,17 +74,245 @@ import prism-pull as pp
 session = pp.PrismSession(download_dir='absolute/path/to/download/to', driver_wait=10)
 ```
 ### get_30_year_monthly_normals
-Returns the average monthly conditions over the previous three decades for the specified area or areas.
+Returns the average monthly conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_30_year_monthly_normals(
+    is_bulk_request: False,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+    cloud_transmittance=False,
+    solar_rad_horiz_sfc=False,
+    solar_rad_sloped_sfc=False,
+    solar_rad_clear_sky=False
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_30_year_monthly_normals(
+    is_bulk_request: True,
+    csv_path="tests/resources/small_coordinates.csv",
+    max_temp=True,
+    solar_rad_horiz_sfc=True,
+    solar_rad_sloped_sfc=True
+)
+```
 ### get_30_year_daily_normals
-Returns the average daily conditions over the previous three decades for the specified area or areas.
+Returns the average daily conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_30_year_daily_normals(
+    is_bulk_request: False,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_30_year_daily_normals(
+    is_bulk_request: True,
+    csv_path="tests/resources/small_coordinates.csv",
+    max_temp=True,
+    mean_temp=False
+)
+```
 ### get_annual_values
-Returns data for selected measurements in the specified range of years.
+Returns data for selected measurements in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_annual_values(
+    is_bulk_request: False,
+    start_year=2015,
+    end_year=2023,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_annual_values(
+    is_bulk_request: False,
+    start_year=1960,
+    end_year=1966,
+    csv_path="tests/resources/small_coordinates.csv",
+    precipitation=False,
+    max_temp=True,
+    min_vpd=True,
+    max_vpd=True,
+)
+```
 ### get_single_month_values
-Returns data for selected measurements for a given month each year in the specified range of years.
+Returns data for selected measurements for a given month each year in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_single_month_values(
+    is_bulk_request: False,
+    month=4,
+    start_year=1980,
+    end_year=1990,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_single_month_values(
+        is_bulk_request: True,
+        month=11,
+        start_year=2021,
+        end_year=2024,
+        csv_path="tests/resources/small_coordinates.csv",
+        min_vpd=True,
+        max_vpd=True,
+)
+```
 ### get_monthly_values
-Returns monthly data for selected measurements for each month between the starting month and year, to ending month and year.
+Returns monthly data for selected measurements for each month between the starting month and year, to ending month and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_monthly_values(
+    is_bulk_request: False,
+    start_month=2,
+    start_year=2011,
+    end_month=9,
+    end_year=2024,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_monthly_values(
+    is_bulk_request: True,
+    start_month=2,
+    start_year=2011,
+    end_month=9,
+    end_year=2024,
+    csv_path="tests/resources/small_coordinates.csv",
+    precipitation=False,
+    mean_dewpoint_temp=True,
+)
+```
 ### get_daily_values
-Returns daily data for selected measurements for each dat between the starting date, month, and year, to ending date, month, and year.
+Returns daily data for selected measurements for each dat between the starting date, month, and year, to ending date, month, and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_daily_values(
+    is_bulk_request: False,
+    start_date=16,
+    start_month=11,
+    start_year=1995,
+    end_date=16,
+    end_month=11,
+    end_year=2009,
+    latitude=40.9473,
+    longitude=-112.2170,
+    precipitation=True,
+    min_temp=False,
+    mean_temp=True,
+    max_temp=False,
+    min_vpd=False,
+    max_vpd=False,
+    mean_dewpoint_temp=False,
+)
+```
+Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
+```
+import prism-pull as pp
+
+session = pp.PrismSession()
+
+session.get_daily_values(
+    is_bulk_request: True,
+    start_date=16,
+    start_month=11,
+    start_year=1995,
+    end_date=16,
+    end_month=11,
+    end_year=2009,
+    csv_path="tests/resources/small_coordinates.csv",
+    min_temp=True,
+    min_vpd=True,
+)
+```
 ## Testing
+This repo uses pytest for testing. In order to run locally, execute the following from the terminal:
+```
+pytest tests
+```
 ## Contributing
-## Contact
+If you want to add to this, shoot me an email at jtbaird95@gmail.com and we can talk about adding you as a collaborator.

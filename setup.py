@@ -7,8 +7,6 @@ setup(
     author="John Baird",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    install_requires=[
-        "selenium"
-    ],
+    install_requires=["selenium", "webdriver_manager"],
     python_requires=">=3.13",
 )
