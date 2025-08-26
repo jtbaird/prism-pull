@@ -25,3 +25,6 @@ jobs:
 
       - name: Run tests with coverage
         run: pipenv run pytest --cov=src --cov-report=term --cov-fail-under=80
+
+      - name: Check release number
+        run: pipenv run python .github/scripts/release_candidate.py
