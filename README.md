@@ -30,9 +30,8 @@ Prerequisites:
 Install with: `pip install prism-pull`
 ## Usage
 Remember to follow the [PRISM Group](https://prism.nacse.org/terms/) terms of use for whatever your project may be. Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
-one class and it's associated getter methods, as well as a method to close your session:
+one class and it's associated getter methods:
 - PrismSession
-    - close
     - get_30_year_monthly_normals
     - get_30_year_daily_normals
     - get_annual_values
@@ -41,11 +40,11 @@ one class and it's associated getter methods, as well as a method to close your 
     - get_daily_values
 
 Each getter method has two to three required arguments which are common to all of them. They are:
-- **is_bulk_request**
+- **is_bulk_request**:
     - Set to True if you are providing a .csv for bulk location request. False otherise.
         - If set to True, you must provide a string csv_path.
         - If set to False, you must provide int/float latitude and longitude.
-- **csv_path**
+- **csv_path**:
     - A string path pointing to the .csv you want to use for a bulk request.
     - Your .csv input should have three columns:
         - Column 1: 
@@ -54,10 +53,15 @@ Each getter method has two to three required arguments which are common to all o
             - longitude: int/float
         - Column 3: 
             - name: string fewer than 13 characters in length
-- **latitude**
+- **latitude**:
     - An integer or floating point latitude coordinate.
-- **longitude**
+- **longitude**:
     - An integer of floating point longitude coordinate.
+
+There's also one optional arg common to all getter methods that I'll call out here:
+- **download_dir**:
+    - The directory where prism-pull will download the results of your PRISM queries.
+    - **Default:** your current working directory
 ### PrismSession
 Generate a new PrismSession:
 ```
@@ -66,9 +70,6 @@ import prism_pull.prism_session as pp
 session = pp.PrismSession()
 ```
 Your PrismSession object can be initialized with two optional arguments:
-- **download_dir**:
-    - The directory where prism-pull will download the results of your PRISM queries.
-    - **Default:** your current working directory
 - **driver_wait**:
     - The time (in seconds) prism-pull web driver will wait before moving onto the next step. Consider increasing if you have poor download speeds.
     - **Default:** 5 seconds
@@ -78,17 +79,6 @@ Here's an example of setting up a session with these arguments:
 import prism_pull.prism_session as pp
 
 session = pp.PrismSession(download_dir='absolute/path/to/download/to', driver_wait=10)
-```
-### close
-Causes your session's WebDriver to quit. Run this command at the end of your session to clean up any associated WebDriver resources. Here's an example usage:
-```
-import prism_pull.prism_session as pp
-
-session = pp.PrismSession()
-
-<run your prism session commands>
-
-session.close()
 ```
 ### get_30_year_monthly_normals
 Returns the average monthly conditions over the previous three decades for the provided **latitude** and **longitude** or **csv_path**. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
@@ -101,6 +91,7 @@ session.get_30_year_monthly_normals(
     is_bulk_request=False,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
@@ -139,6 +130,7 @@ session.get_30_year_daily_normals(
     is_bulk_request=False,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
@@ -174,6 +166,7 @@ session.get_annual_values(
     end_year=2023,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
@@ -216,6 +209,7 @@ session.get_single_month_values(
     end_year=1990,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
@@ -258,6 +252,7 @@ session.get_monthly_values(
     end_year=2024,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
@@ -304,6 +299,7 @@ session.get_daily_values(
     end_year=2009,
     latitude=40.9473,
     longitude=-112.2170,
+    download_dir=CWD,
     precipitation=True,
     min_temp=False,
     mean_temp=True,
