@@ -10,6 +10,7 @@ black = "*"
 freezegun = "*"
 build = "*"
 twine = "*"
+requests = "*"
 
 [requires]
 python_version = "3.13"
