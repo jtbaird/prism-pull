@@ -1,11 +1,11 @@
 # prism-pull
-prism-pull is a python package made to pull data from PRISM Group via web automation. Via the the [PRISM website](https://prism.nacse.org/):
+prism-pull is a python package made to pull data from PRISM Group using web automation. For those not familiar with PRISM, via the the [PRISM website](https://prism.nacse.org/):
 ```
 The PRISM Group gathers weather observations from a wide range of monitoring networks, applies
- sophisticated quality control measures, and develops spatial datasets to reveal short- and 
- long-term weather patterns. The resulting datasets incorporate a variety of modeling techniques 
- and are available at multiple spatial/temporal resolutions, covering the period from 1895 to 
- the present. 
+sophisticated quality control measures, and develops spatial datasets to reveal short- and 
+long-term weather patterns. The resulting datasets incorporate a variety of modeling techniques 
+and are available at multiple spatial/temporal resolutions, covering the period from 1895 to 
+the present. 
 ```
 The types of weather data consist of:
 - precipitaion totals
@@ -25,13 +25,13 @@ These data are available across a variety of timescales for each cell of a 4km b
 Prerequisites:
 - pip
 - Google Chrome
-- Python3.13
-    - Working on finding lowest compatible python version at the moment.
+- Python3.10 or higher
 Install with: `pip install prism-pull`
 ## Usage
 Remember to follow the [PRISM Group](https://prism.nacse.org/terms/) terms of use for whatever your project may be. Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
-one class, and it's associated getter methods:
+one class and it's associated getter methods, as well as a method to close your session:
 - PrismSession
+    - close
     - get_30_year_monthly_normals
     - get_30_year_daily_normals
     - get_annual_values
@@ -60,7 +60,7 @@ Each method has two to three required arguments which are common to all of them.
 ### PrismSession
 Generate a new PrismSession:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 ```
@@ -73,19 +73,30 @@ Your PrismSession object can be initialized with two optional arguments:
     - default: 5 seconds
 Here's an example of setting up a session with these arguments:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession(download_dir='absolute/path/to/download/to', driver_wait=10)
+```
+### close
+Causes your session's WebDriver to quit. Run this command at the end of your session to clean up any associated WebDriver resources. Here's an example usage:
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+<run your prism session commands>
+
+session.close()
 ```
 ### get_30_year_monthly_normals
 Returns the average monthly conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_30_year_monthly_normals(
-    is_bulk_request: False,
+    is_bulk_request=False,
     latitude=40.9473,
     longitude=-112.2170,
     precipitation=True,
@@ -103,12 +114,12 @@ session.get_30_year_monthly_normals(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_30_year_monthly_normals(
-    is_bulk_request: True,
+    is_bulk_request=True,
     csv_path="tests/resources/small_coordinates.csv",
     max_temp=True,
     solar_rad_horiz_sfc=True,
@@ -118,12 +129,12 @@ session.get_30_year_monthly_normals(
 ### get_30_year_daily_normals
 Returns the average daily conditions over the previous three decades for the specified area or areas. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_30_year_daily_normals(
-    is_bulk_request: False,
+    is_bulk_request=False,
     latitude=40.9473,
     longitude=-112.2170,
     precipitation=True,
@@ -137,12 +148,12 @@ session.get_30_year_daily_normals(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_30_year_daily_normals(
-    is_bulk_request: True,
+    is_bulk_request=True,
     csv_path="tests/resources/small_coordinates.csv",
     max_temp=True,
     mean_temp=False
@@ -151,12 +162,12 @@ session.get_30_year_daily_normals(
 ### get_annual_values
 Returns data for selected measurements in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_annual_values(
-    is_bulk_request: False,
+    is_bulk_request=False,
     start_year=2015,
     end_year=2023,
     latitude=40.9473,
@@ -172,12 +183,12 @@ session.get_annual_values(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_annual_values(
-    is_bulk_request: False,
+    is_bulk_request=False,
     start_year=1960,
     end_year=1966,
     csv_path="tests/resources/small_coordinates.csv",
@@ -190,12 +201,12 @@ session.get_annual_values(
 ### get_single_month_values
 Returns data for selected measurements for a given month each year in the specified range of years. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_single_month_values(
-    is_bulk_request: False,
+    is_bulk_request=False,
     month=4,
     start_year=1980,
     end_year=1990,
@@ -212,12 +223,12 @@ session.get_single_month_values(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_single_month_values(
-        is_bulk_request: True,
+        is_bulk_request=True,
         month=11,
         start_year=2021,
         end_year=2024,
@@ -229,12 +240,12 @@ session.get_single_month_values(
 ### get_monthly_values
 Returns monthly data for selected measurements for each month between the starting month and year, to ending month and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_monthly_values(
-    is_bulk_request: False,
+    is_bulk_request=False,
     start_month=2,
     start_year=2011,
     end_month=9,
@@ -253,12 +264,12 @@ session.get_monthly_values(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_monthly_values(
-    is_bulk_request: True,
+    is_bulk_request=True,
     start_month=2,
     start_year=2011,
     end_month=9,
@@ -271,12 +282,12 @@ session.get_monthly_values(
 ### get_daily_values
 Returns daily data for selected measurements for each dat between the starting date, month, and year, to ending date, month, and year. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_daily_values(
-    is_bulk_request: False,
+    is_bulk_request=False,
     start_date=16,
     start_month=11,
     start_year=1995,
@@ -296,12 +307,12 @@ session.get_daily_values(
 ```
 Here's an example using a .csv for a bulk request, and setting a few non-default weather inputs:
 ```
-import prism-pull as pp
+import prism_pull.prism_session as pp
 
 session = pp.PrismSession()
 
 session.get_daily_values(
-    is_bulk_request: True,
+    is_bulk_request=True,
     start_date=16,
     start_month=11,
     start_year=1995,
@@ -319,4 +330,4 @@ This repo uses pytest for testing. In order to run locally, execute the followin
 pytest tests
 ```
 ## Contributing
-If you work on this repo as a collaborator, shoot me an email at jtbaird95@gmail.com.
+If you work on this repo as a collaborator, shoot me an email at jtbaird95@gmail.com or create an issue and we'll get in touch.
