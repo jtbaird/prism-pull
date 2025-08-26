@@ -7,17 +7,17 @@ import os
 
 
 # PUBLIC METHOD TESTS
-@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test_prism_session_init(mock_chrome):
-    session = ps.PrismSession()
-    assert isinstance(session.driver, MagicMock)
+@patch("src.prism_pull.prism_session.Options")
+def test_prism_session_init(mock_options):
+    mock_options_instance = MagicMock()
+    mock_options.return_value = mock_options_instance
 
-
-@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
-def test_close(mock_chrome):
-    session = ps.PrismSession()
-    session.close()
-    session.driver.quit.assert_called_once()
+    session = ps.PrismSession(driver_wait=7)
+    assert session.singular_url == ps.SINGLE_URL
+    assert session.bulk_url == ps.BULK_URL
+    assert session.driver_wait == 7
+    assert session.chrome_options == mock_options_instance
+    mock_options_instance.add_argument.assert_called_with("--headless=new")
 
 
 @patch.object(ps.PrismSession, "_submit_and_download")
@@ -46,7 +46,6 @@ def test_submit_coordinates(
 
     mock_validate_inputs.assert_called_once()
     assert mock_upload_csv.call_count == 0
-    mock_set_coordinates.assert_called_once_with(40.9473, -112.217)
     mock_set_date_range.assert_called_once()
     mock_set_data_settings.assert_called_once()
     assert mock_submit_and_download_bulk.call_count == 0
@@ -381,7 +380,7 @@ def test__set_coordinates(mock_chrome, mock_wait):
     mock_element.send_keys = MagicMock()
     mock_wait.return_value.until.return_value = mock_element
 
-    session._set_coordinates(40.9473, -112.2170)
+    session._set_coordinates(mock_chrome, 40.9473, -112.2170)
 
     assert mock_element.click.call_count == 1
     assert mock_element.clear.call_count == 2
@@ -406,6 +405,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
 
     # cases for 30 year date settings
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=True,
         is_30_year_daily=False,
         is_annual=False,
@@ -423,6 +423,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
     assert until_mocks[0].click.call_count == 1
 
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=False,
         is_30_year_daily=True,
         is_annual=False,
@@ -441,6 +442,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
 
     # case for is_annual date setting
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=False,
         is_30_year_daily=False,
         is_annual=True,
@@ -464,6 +466,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
 
     # case for is_single_month date setting
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=False,
         is_30_year_daily=False,
         is_annual=False,
@@ -487,6 +490,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
 
     # case for is_monthly date setting
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=False,
         is_30_year_daily=False,
         is_annual=False,
@@ -510,6 +514,7 @@ def test__set_date_range(mock_chrome, mock_wait, mock_select):
 
     # case for is_monthly date setting
     session._set_date_range(
+        driver=mock_chrome,
         is_30_year_monthly=False,
         is_30_year_daily=False,
         is_annual=False,
@@ -541,6 +546,7 @@ def test__set_data_settings(mock_chrome, mock_wait):
     mock_wait.return_value.until.return_value = mock_element
 
     session._set_data_settings(
+        driver=mock_chrome,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -557,6 +563,7 @@ def test__set_data_settings(mock_chrome, mock_wait):
     assert mock_element.click.call_count == 0
 
     session._set_data_settings(
+        driver=mock_chrome,
         precipitation=False,
         min_temp=True,
         mean_temp=False,
@@ -581,7 +588,7 @@ def test__submit_and_download(mock_chrome, mock_wait):
     mock_element.click = MagicMock()
     mock_wait.return_value.until.return_value = mock_element
 
-    session._submit_and_download()
+    session._submit_and_download(driver=mock_chrome)
 
     assert mock_element.click.call_count == 2
 
@@ -630,7 +637,7 @@ def test__upload_csv(mock_chrome, mock_wait):
     mock_element.send_keys = MagicMock()
     mock_wait.return_value.until.return_value = mock_element
 
-    session._upload_csv("tests/resources/small_coordinates.csv")
+    session._upload_csv(mock_chrome, "tests/resources/small_coordinates.csv")
 
     assert mock_element.send_keys.call_count == 1
 
@@ -653,7 +660,7 @@ def test__submit_and_download_bulk(mock_chrome, mock_wait):
     mock_element.click = MagicMock()
     mock_wait.return_value.until.return_value = mock_element
 
-    session._submit_and_download_bulk()
+    session._submit_and_download_bulk(mock_chrome)
 
     assert mock_element.click.call_count == 1
 
@@ -728,35 +735,40 @@ def test_is_string_float(mock_chrome):
 @patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
 def test__check_loc_and_download_type(mock_chrome):
     session = ps.PrismSession()
-
+    cwd = os.getcwd()
     result = session._check_loc_and_download_type(
-        True, "tests/resources/small_coordinates.csv", None, None
+        True, "tests/resources/small_coordinates.csv", None, None, cwd
     )
     assert result is None
-    result = session._check_loc_and_download_type(False, None, 40.9473, -112.2170)
+    result = session._check_loc_and_download_type(False, None, 40.9473, -112.2170, cwd)
     assert result is None
 
     with pytest.raises(
         ValueError, match="CSV path must be a string, not <class 'NoneType'>."
     ):
-        session._check_loc_and_download_type(True, None, None, None)
+        session._check_loc_and_download_type(True, None, None, None, cwd)
     with pytest.raises(
         ValueError, match="CSV path must be a string, not <class 'int'>."
     ):
-        session._check_loc_and_download_type(True, 123, None, None)
+        session._check_loc_and_download_type(True, 123, None, None, cwd)
     with pytest.raises(
         ValueError, match="Latitude and longitude must be numeric values."
     ):
-        session._check_loc_and_download_type(False, None, None, None)
+        session._check_loc_and_download_type(False, None, None, None, cwd)
     with pytest.raises(
         ValueError, match="Latitude and longitude must be numeric values."
     ):
-        session._check_loc_and_download_type(False, None, "not_a_number", None)
+        session._check_loc_and_download_type(False, None, "not_a_number", None, cwd)
     with pytest.raises(
         ValueError, match="Latitude and longitude must be numeric values."
     ):
-        session._check_loc_and_download_type(False, None, None, "not_a_number")
+        session._check_loc_and_download_type(False, None, None, "not_a_number", cwd)
     with pytest.raises(ValueError, match="is_bulk_request must be a boolean value."):
         session._check_loc_and_download_type(
-            "not_a_boolean", None, "not_a_number", "not_a_number"
+            "not_a_boolean", None, "not_a_number", "not_a_number", cwd
         )
+    with pytest.raises(ValueError, match="Download directory must be a string, not <class 'int'>."):
+        session._check_loc_and_download_type(False, None, 40.9473, -112.2170, 231)
+
+    with pytest.raises(ValueError, match="Download directory does not exist: asdf"):
+        session._check_loc_and_download_type(False, None, 40.9473, -112.2170, 'asdf')

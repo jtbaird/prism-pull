@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class PrismSession:
-    def __init__(self, download_dir=CWD, driver_wait=5):
+    def __init__(self, driver_wait=5):
         """
         Initializes a new session for interacting with the PRISM API.
 
@@ -31,31 +31,12 @@ class PrismSession:
         logger.info("Starting new PRISM session...")
         self.singular_url = SINGLE_URL
         self.bulk_url = BULK_URL
-        self.download_dir = download_dir
         self.driver_wait = driver_wait
 
-        chrome_options = Options()
-        chrome_options.add_argument("--headless=new")
-        chrome_options.add_experimental_option(
-            "prefs",
-            {
-                "download.default_directory": download_dir,
-                "download.prompt_for_download": False,
-                "directory_upgrade": True,
-                "safebrowsing.enabled": True,
-            },
-        )
-
-        self.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=chrome_options
-        )
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless=new")
 
         logger.info("PRISM session initialized.")
-
-    def close(self):
-        logger.info("Closing PRISM session...")
-        self.driver.quit()
-        logger.info("PRISM session closed.")
 
     # WEATHER REQUESTS
     def get_30_year_monthly_normals(
@@ -64,6 +45,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -98,7 +80,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
 
         self._submit_coordinates(
@@ -106,6 +88,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -127,6 +110,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -153,7 +137,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
 
         self._submit_coordinates(
@@ -161,6 +145,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -180,6 +165,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -208,7 +194,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
 
         if start_year > end_year:
@@ -219,6 +205,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -241,6 +228,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -270,7 +258,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
 
         if start_year > end_year:
@@ -285,6 +273,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -309,6 +298,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -339,7 +329,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
@@ -357,6 +347,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -382,6 +373,7 @@ class PrismSession:
         latitude=None,
         longitude=None,
         csv_path=None,
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -414,7 +406,7 @@ class PrismSession:
             None
         """
         self._check_loc_and_download_type(
-            is_bulk_request, csv_path, latitude, longitude
+            is_bulk_request, csv_path, latitude, longitude, download_dir
         )
         if start_year > end_year:
             raise ValueError("Start year must be less than or equal to end year.")
@@ -440,6 +432,7 @@ class PrismSession:
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
+            download_dir=download_dir,
             precipitation=precipitation,
             min_temp=min_temp,
             mean_temp=mean_temp,
@@ -458,12 +451,14 @@ class PrismSession:
         )
 
     # PRIVATE METHODS
+
     def _submit_coordinates(
         self,
         is_bulk_request,
         latitude=40.9473,
         longitude=-112.2170,
         csv_path="/dummy/path/to/csv",
+        download_dir=CWD,
         precipitation=True,
         min_temp=False,
         mean_temp=True,
@@ -523,6 +518,24 @@ class PrismSession:
         Returns:
             None
         """
+        if not os.path.isabs(download_dir):
+            download_dir = os.path.abspath(download_dir)
+        if not os.path.isdir(download_dir):
+            raise ValueError(f"Download directory does not exist: {download_dir}")
+        self.chrome_options.add_experimental_option(
+            "prefs",
+            {
+                "download.default_directory": download_dir,
+                "download.prompt_for_download": False,
+                "directory_upgrade": True,
+                "safebrowsing.enabled": True,
+            },
+        )
+
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=self.chrome_options,
+        )
 
         # Validate date inputs
         self._validate_inputs(
@@ -531,25 +544,26 @@ class PrismSession:
 
         # open browser and switch to coordinate location mode
         if is_bulk_request:
-            self.driver.get(self.bulk_url)
+            driver.get(self.bulk_url)
             logger.info("Validating CSV file...")
             needs_partition = self._validate_csv(
                 csv_path
             )  # _validate_csv returns True if row count is over 500
             if not needs_partition:
                 logger.info("Uploading CSV file...")
-                self._upload_csv(csv_path)
+                self._upload_csv(driver, csv_path)
             else:
                 # if there's more than 500 records, break into subsets of 500, set the rest of the request,
                 # loop through and download partition
                 logger.info("Partitioning CSV file...")
                 partitions = self._generate_partitions(csv_path)
         else:
-            self.driver.get(self.singular_url)
-            self._set_coordinates(latitude, longitude)
+            driver.get(self.singular_url)
+            self._set_coordinates(driver, latitude, longitude)
 
         # set date configuration:
         self._set_date_range(
+            driver,
             is_30_year_monthly,
             is_30_year_daily,
             is_annual,
@@ -566,6 +580,7 @@ class PrismSession:
 
         # Set data settings
         self._set_data_settings(
+            driver,
             precipitation,
             min_temp,
             mean_temp,
@@ -585,11 +600,11 @@ class PrismSession:
                 logger.info("Submitting and downloading multi part bulk data...")
                 for part in partitions.keys():
                     if partitions[part] > 1:
-                        self._upload_csv(part)
+                        self._upload_csv(driver, part)
                         logger.info(
                             f"Submitting and downloading data for partition: {part}"
                         )
-                        self._submit_and_download_bulk()
+                        self._submit_and_download_bulk(driver)
                         logger.info(f"Removing temporary CSV file: {part}")
                     else:
                         logger.info(
@@ -632,9 +647,13 @@ class PrismSession:
                     os.remove(part)
             else:
                 logger.info("Submitting and downloading single part bulk data...")
-                self._submit_and_download_bulk()
+                self._submit_and_download_bulk(driver)
         else:
-            self._submit_and_download()
+            self._submit_and_download(driver)
+
+        logger.info("Closing PRISM session...")
+        driver.quit()
+        logger.info("PRISM session closed.")
 
     def _validate_inputs(
         self, start_date, start_month, start_year, end_date, end_month, end_year
@@ -646,17 +665,17 @@ class PrismSession:
         self._check_years(start_year)
         self._check_years(end_year)
 
-    def _set_coordinates(self, latitude, longitude):
-        coordinate_button = WebDriverWait(self.driver, self.driver_wait).until(
+    def _set_coordinates(self, driver, latitude, longitude):
+        coordinate_button = WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "loc_method_coords"))
         )
         coordinate_button.click()
 
         # get coordinate fields once they're available and populate them
-        lat_field = WebDriverWait(self.driver, self.driver_wait).until(
+        lat_field = WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "loc_lat"))
         )
-        lon_field = WebDriverWait(self.driver, self.driver_wait).until(
+        lon_field = WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "loc_lon"))
         )
         lat_field.clear()
@@ -666,6 +685,7 @@ class PrismSession:
 
     def _set_date_range(
         self,
+        driver,
         is_30_year_monthly,
         is_30_year_daily,
         is_annual,
@@ -708,7 +728,7 @@ class PrismSession:
             end_month_id = "tper_daily_end_month"
             end_year_id = "tper_daily_end_year"
 
-        date_button = WebDriverWait(self.driver, self.driver_wait).until(
+        date_button = WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, date_id))
         )
         date_button.click()
@@ -716,10 +736,10 @@ class PrismSession:
         # set finer date ranges
         if not (is_30_year_monthly or is_30_year_daily):
             # select years
-            start_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
+            start_year_dropdown = WebDriverWait(driver, self.driver_wait).until(
                 EC.presence_of_element_located((By.ID, start_year_id))
             )
-            end_year_dropdown = WebDriverWait(self.driver, self.driver_wait).until(
+            end_year_dropdown = WebDriverWait(driver, self.driver_wait).until(
                 EC.presence_of_element_located((By.ID, end_year_id))
             )
 
@@ -733,17 +753,17 @@ class PrismSession:
 
             if not is_annual:
                 logger.info(f"Selecting start month: {start_month}")
-                start_month_dropdown = WebDriverWait(
-                    self.driver, self.driver_wait
-                ).until(EC.presence_of_element_located((By.ID, start_month_id)))
+                start_month_dropdown = WebDriverWait(driver, self.driver_wait).until(
+                    EC.presence_of_element_located((By.ID, start_month_id))
+                )
                 select_start_month = Select(start_month_dropdown)
                 select_start_month.select_by_value(str(start_month))
 
                 if not is_single_month:
                     logger.info(f"Selecting end month: {end_month}")
-                    end_month_dropdown = WebDriverWait(
-                        self.driver, self.driver_wait
-                    ).until(EC.presence_of_element_located((By.ID, end_month_id)))
+                    end_month_dropdown = WebDriverWait(driver, self.driver_wait).until(
+                        EC.presence_of_element_located((By.ID, end_month_id))
+                    )
                     select_end_month = Select(end_month_dropdown)
                     select_end_month.select_by_value(str(end_month))
 
@@ -752,19 +772,20 @@ class PrismSession:
                             f"Selecting start date: {start_date} and end date: {end_date}"
                         )
                         start_date_dropdown = WebDriverWait(
-                            self.driver, self.driver_wait
+                            driver, self.driver_wait
                         ).until(EC.presence_of_element_located((By.ID, start_date_id)))
                         select_start_date = Select(start_date_dropdown)
                         select_start_date.select_by_value(str(start_date))
 
                         end_date_dropdown = WebDriverWait(
-                            self.driver, self.driver_wait
+                            driver, self.driver_wait
                         ).until(EC.presence_of_element_located((By.ID, end_date_id)))
                         select_end_date = Select(end_date_dropdown)
                         select_end_date.select_by_value(str(end_date))
 
     def _set_data_settings(
         self,
+        driver,
         precipitation,
         min_temp,
         mean_temp,
@@ -794,7 +815,7 @@ class PrismSession:
         for key in true_defaults:
             if not eval(key):
                 # Click the corresponding button if the setting is not true
-                button = WebDriverWait(self.driver, self.driver_wait).until(
+                button = WebDriverWait(driver, self.driver_wait).until(
                     EC.element_to_be_clickable((By.ID, true_defaults[key]))
                 )
                 button.click()
@@ -802,16 +823,16 @@ class PrismSession:
         for key in false_defaults:
             if eval(key):
                 # Click the corresponding button if the setting is not false
-                button = WebDriverWait(self.driver, self.driver_wait).until(
+                button = WebDriverWait(driver, self.driver_wait).until(
                     EC.element_to_be_clickable((By.ID, false_defaults[key]))
                 )
                 button.click()
 
-    def _submit_and_download(self):
-        WebDriverWait(self.driver, self.driver_wait).until(
+    def _submit_and_download(self, driver):
+        WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "submit_button"))
         ).click()
-        WebDriverWait(self.driver, self.driver_wait).until(
+        WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "download_button"))
         ).click()
         time.sleep(1)  # Wait for download to complete
@@ -851,9 +872,9 @@ class PrismSession:
                 logger.info("CSV is within the row limits.")
                 return False
 
-    def _upload_csv(self, csv_path):
+    def _upload_csv(self, driver, csv_path):
         """Uploads a CSV file to the bulk request form."""
-        file_input = WebDriverWait(self.driver, self.driver_wait).until(
+        file_input = WebDriverWait(driver, self.driver_wait).until(
             EC.presence_of_element_located((By.ID, "locations_file"))
         )
         file_input.send_keys(csv_path)
@@ -889,11 +910,11 @@ class PrismSession:
 
         return partitions
 
-    def _submit_and_download_bulk(self):
+    def _submit_and_download_bulk(self, driver):
         """
         Submits the bulk request form and downloads the resulting CSV files.
         """
-        WebDriverWait(self.driver, self.driver_wait).until(
+        WebDriverWait(driver, self.driver_wait).until(
             EC.element_to_be_clickable((By.ID, "submitdown_button"))
         ).click()
         time.sleep(self.driver_wait)  # Wait for download to complete
@@ -946,7 +967,7 @@ class PrismSession:
             return False
 
     def _check_loc_and_download_type(
-        self, is_bulk_request, csv_path, latitude, longitude
+        self, is_bulk_request, csv_path, latitude, longitude, download_dir
     ):
         if isinstance(is_bulk_request, bool):
             if is_bulk_request:
@@ -969,3 +990,8 @@ class PrismSession:
                     )
         else:
             raise ValueError("is_bulk_request must be a boolean value.")
+        if not isinstance(download_dir, str):
+            input_type = type(download_dir)
+            raise ValueError(f"Download directory must be a string, not {input_type}.")
+        if not os.path.isdir(download_dir):
+            raise ValueError(f"Download directory does not exist: {download_dir}")
