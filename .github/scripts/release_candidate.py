@@ -1,7 +1,7 @@
 import requests
 import tomllib
 
-url = f"https://pypi.org/pypi/{package_name}/json"
+url = f"https://pypi.org/pypi/prism-pull/json"
 resp = requests.get(url)
 if resp.status_code == 200:
     data = resp.json()
