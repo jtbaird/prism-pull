@@ -105,6 +105,8 @@ class PrismSession:
     def get_30_year_monthly_normals(
         self,
         is_bulk_request: bool,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -149,6 +151,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -170,6 +174,8 @@ class PrismSession:
     def get_30_year_daily_normals(
         self,
         is_bulk_request: bool,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -206,6 +212,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -225,6 +233,8 @@ class PrismSession:
         is_bulk_request: bool,
         start_year,
         end_year,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -266,6 +276,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -288,6 +300,8 @@ class PrismSession:
         month,
         start_year,
         end_year,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -334,6 +348,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -358,6 +374,8 @@ class PrismSession:
         start_year,
         end_month,
         end_year,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -410,6 +428,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -435,6 +455,8 @@ class PrismSession:
         end_date,
         end_month,
         end_year,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=None,
         longitude=None,
         csv_path=None,
@@ -488,7 +510,9 @@ class PrismSession:
             raise ValueError(
                 "Start date must be less than or equal to end date when months and years are equal."
             )
-        if not self._is_within_one_year(start_year, start_month, start_date, end_year, end_month, end_date):
+        if not self._is_within_one_year(
+            start_year, start_month, start_date, end_year, end_month, end_date
+        ):
             raise ValueError("Daily data requests are limited to a 1-year range.")
         if self._is_within_past_6_months(end_year, end_month, 1):
             warnings.warn(
@@ -497,6 +521,8 @@ class PrismSession:
 
         self._submit_coordinates(
             is_bulk_request=is_bulk_request,
+            set_resolution_800m=set_resolution_800m,
+            set_units_metric=set_units_metric,
             latitude=latitude,
             longitude=longitude,
             csv_path=csv_path,
@@ -521,6 +547,8 @@ class PrismSession:
     def _submit_coordinates(
         self,
         is_bulk_request,
+        set_resolution_800m=False,
+        set_units_metric=False,
         latitude=40.9473,
         longitude=-112.2170,
         csv_path="/dummy/path/to/csv",
@@ -639,6 +667,13 @@ class PrismSession:
             solar_rad_clear_sky,
         )
 
+        # Set resolution to 4km or 800m grids
+        if set_resolution_800m:
+            self._set_resolution()
+
+        if set_units_metric:
+            self._set_units()
+
         # submit the form and download the data
         if is_bulk_request:
             if needs_partition:
@@ -662,6 +697,8 @@ class PrismSession:
                                 lon = float(row[1])
                         self._submit_coordinates(
                             is_bulk_request=False,
+                            set_resolution_800m=set_resolution_800m,
+                            set_units_metric=set_units_metric,
                             latitude=lat,
                             longitude=lon,
                             precipitation=precipitation,
@@ -866,6 +903,16 @@ class PrismSession:
                     EC.element_to_be_clickable((By.ID, false_defaults[key]))
                 )
                 button.click()
+
+    def _set_resolution(self):
+        WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "res_800m"))
+        ).click()
+
+    def _set_units(self):
+        WebDriverWait(self.driver, self.driver_wait).until(
+            EC.element_to_be_clickable((By.ID, "units_si"))
+        ).click()
 
     def _submit_and_download(self):
         WebDriverWait(self.driver, self.driver_wait).until(
