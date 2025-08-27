@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prism-pull"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python package to pull PRISM weather data via web automation."
 readme = "README.md"
 authors = [
