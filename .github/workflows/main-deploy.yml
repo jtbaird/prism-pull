@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: pipenv install --dev
 
+      - name: Run tests with coverage
+        run: pipenv run pytest --cov=src --cov-report=term-missing --cov-fail-under=80 --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+
       - name: Build wheel
         run: pipenv run python3 -m build
 

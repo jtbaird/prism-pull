@@ -26,8 +26,5 @@ jobs:
       - name: Run tests with coverage
         run: pipenv run pytest --cov=src --cov-report=term-missing --cov-fail-under=80 --cov-report=xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-
       - name: Check release number
         run: pipenv run python .github/scripts/release_candidate.py
