@@ -152,6 +152,8 @@ session = pp.PrismSession()
 
 session.get_30_year_monthly_normals(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     latitude=40.9473,
     longitude=-112.2170,
     download_dir=CWD,
@@ -191,6 +193,8 @@ session = pp.PrismSession()
 
 session.get_30_year_daily_normals(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     latitude=40.9473,
     longitude=-112.2170,
     download_dir=CWD,
@@ -225,6 +229,8 @@ session = pp.PrismSession()
 
 session.get_annual_values(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     start_year=2015,
     end_year=2023,
     latitude=40.9473,
@@ -267,6 +273,8 @@ session = pp.PrismSession()
 
 session.get_single_month_values(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     month=4,
     start_year=1980,
     end_year=1990,
@@ -311,6 +319,8 @@ session = pp.PrismSession()
 
 session.get_monthly_values(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     start_month=2,
     start_year=2011,
     end_month=9,
@@ -358,6 +368,8 @@ session = pp.PrismSession()
 
 session.get_daily_values(
     is_bulk_request=False,
+    set_resolution_800m=False,
+    set_units_metric=False,
     start_date=16,
     start_month=11,
     start_year=1995,
