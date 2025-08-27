@@ -66,6 +66,8 @@ def test_set_driver_wait(mock_chrome):
 
 @patch.object(ps.PrismSession, "_submit_and_download")
 @patch.object(ps.PrismSession, "_submit_and_download_bulk")
+@patch.object(ps.PrismSession, "_set_units")
+@patch.object(ps.PrismSession, "_set_resolution")
 @patch.object(ps.PrismSession, "_set_data_settings")
 @patch.object(ps.PrismSession, "_set_date_range")
 @patch.object(ps.PrismSession, "_set_coordinates")
@@ -79,6 +81,8 @@ def test_submit_coordinates(
     mock_set_coordinates,
     mock_set_date_range,
     mock_set_data_settings,
+    mock_set_resolution,
+    mock_set_units,
     mock_submit_and_download_bulk,
     mock_submit_and_download,
 ):
@@ -133,6 +137,11 @@ def test_submit_coordinates(
     assert mock_set_data_settings.call_count == 5
     assert mock_submit_and_download_bulk.call_count == 4
     assert mock_submit_and_download.call_count == 2
+
+    session._submit_coordinates(is_bulk_request=False, set_resolution_800m=True, set_units_metric=True)
+
+    assert mock_set_resolution.call_count == 1
+    assert mock_set_units.call_count == 1
 
 
 @patch.object(ps.PrismSession, "_submit_coordinates", return_value=True)
@@ -705,6 +714,32 @@ def test__set_data_settings(mock_chrome, mock_wait):
     )
 
     assert mock_element.click.call_count == 11
+
+
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test__set_resolution(mock_chrome, mock_wait):
+    session = ps.PrismSession()
+    mock_element = MagicMock()
+    mock_element.click = MagicMock()
+    mock_wait.return_value.until.return_value = mock_element
+
+    session._set_resolution()
+
+    assert mock_element.click.call_count == 1
+
+
+@patch("src.prism_pull.prism_session.WebDriverWait")
+@patch("src.prism_pull.prism_session.webdriver.Chrome", return_value=MagicMock())
+def test__set_units(mock_chrome, mock_wait):
+    session = ps.PrismSession()
+    mock_element = MagicMock()
+    mock_element.click = MagicMock()
+    mock_wait.return_value.until.return_value = mock_element
+
+    session._set_units()
+
+    assert mock_element.click.call_count == 1
 
 
 @patch("src.prism_pull.prism_session.WebDriverWait")

@@ -52,6 +52,14 @@ Each weather getter method has two to three required arguments which are common 
     - Set to True if you are providing a .csv for bulk location request. False otherise.
         - If set to True, you must provide a string csv_path.
         - If set to False, you must provide int/float latitude and longitude.
+- **set_resolution_800m**:
+    - Set to True to get data for 800m by 800m grid resolution.
+    - Set to False to get data for 4km by 4km grid resolution.
+    - **Default:** False
+- **set_units_metric**:
+    - Set to True to get data in metric units.
+    - Set to False to get data in imperial units.
+    - **Default:** False
 - **csv_path**:
     - A string path pointing to the .csv you want to use for a bulk request.
     - Your .csv input should have three columns:
