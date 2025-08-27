@@ -24,7 +24,7 @@ jobs:
         run: pipenv install --dev
 
       - name: Run tests with coverage
-        run: pipenv run pytest --cov=src --cov-report=term --cov-fail-under=80
+        run: pipenv run pytest --cov=src --cov-report=term-missing --cov-fail-under=80 --cov-report=xml
 
       - name: Check release number
         run: pipenv run python .github/scripts/release_candidate.py

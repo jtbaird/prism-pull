@@ -1,3 +1,6 @@
+[![PyPI version](https://badge.fury.io/py/prism-pull.svg)](https://badge.fury.io/py/prism-pull)
+[![codecov](https://codecov.io/gh/jtbaird/prism-pull/branch/main/graph/badge.svg)](https://codecov.io/gh/jtbaird/prism-pull)
+![Build Status](https://github.com/jtbaird/prism-pull/actions/workflows/main-deploy.yml/badge.svg)
 # prism-pull
 prism-pull is a python package made to pull data from PRISM Group using web automation. For those not familiar with PRISM Group, via the [PRISM website](https://prism.nacse.org/):
 ```
@@ -30,8 +33,13 @@ Prerequisites:
 Install with: `pip install prism-pull`
 ## Usage
 Remember to follow the [PRISM Group](https://prism.nacse.org/terms/) terms of use for whatever your project may be. Usage is simple, and will be familiar to anyone who has used the PRISM GUI in the past. The package consists of 
-one class and it's associated getter methods:
+one class and it's associated methods:
 - PrismSession
+    - close
+    - get_download_directory
+    - set_download_directory
+    - get_driver_wait
+    - set_driver_wait
     - get_30_year_monthly_normals
     - get_30_year_daily_normals
     - get_annual_values
@@ -39,7 +47,7 @@ one class and it's associated getter methods:
     - get_monthly_values
     - get_daily_values
 
-Each getter method has two to three required arguments which are common to all of them. They are:
+Each weather getter method has two to three required arguments which are common to all of them. They are:
 - **is_bulk_request**:
     - Set to True if you are providing a .csv for bulk location request. False otherise.
         - If set to True, you must provide a string csv_path.
@@ -79,6 +87,53 @@ Here's an example of setting up a session with these arguments:
 import prism_pull.prism_session as pp
 
 session = pp.PrismSession(download_dir='absolute/path/to/download/to', driver_wait=10)
+```
+### close
+Causes your session's WebDriver to quit. Run this command at the end of your session to clean up any associated WebDriver resources. Here's an example usage:
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+<run your prism session commands>
+
+session.close()
+```
+### get_download_directory
+Returns the absolute path of your session's currently set download directory. Use as follows:
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+session.get_download_directory()
+```
+### set_download_directory
+Updates the directory where your PrismSession object will download data to. Here's an example:
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+session.set_download_directory(<absolute or relative path to your target download dir>)
+```
+### get_driver_wait
+Returns the driver wait time for your current PrismSession. Use similar to get_download_directory():
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+session.get_driver_wait()
+```
+### set_driver_wait
+Updates the driver wait time for your current PrismSession. Consider increasing this if you're downloads aren't showing up, are getting cut off mid download, or if you know you have a bad internet connection. Consider that the largest possible file size from PRISM is 12.7MB. Conversely, if your internet is blazing fast, turn down the wait time. Here's how to use this method:
+```
+import prism_pull.prism_session as pp
+
+session = pp.PrismSession()
+
+session.set_driver_wait(10)
 ```
 ### get_30_year_monthly_normals
 Returns the average monthly conditions over the previous three decades for the provided **latitude** and **longitude** or **csv_path**. Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
@@ -236,7 +291,9 @@ session.get_single_month_values(
 )
 ```
 ### get_monthly_values
-Returns average or total data for selected measurements for every month from **start_month**, **start_year** to **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** any data collected within the past six months is considered provisional and may be subject to revisions. 
+Returns average or total data for selected measurements for every month from **start_month**, **start_year** to **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** there are some requirements and considerations for daily weather data:
+- Any data collected within the past six months is considered provisional and may be subject to revisions.
+- Your start and end dates must be within 15 years of each other.
 
 Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
@@ -281,7 +338,9 @@ session.get_monthly_values(
 )
 ```
 ### get_daily_values
-Returns average or total data for selected measurements for each day from start_date, **start_month**, **start_year** to **end_date**, **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** any data collected within the past six months is considered provisional and may be subject to revisions.
+Returns average or total data for selected measurements for each day from start_date, **start_month**, **start_year** to **end_date**, **end_month**, **end_year**, for the provided **latitude** and **longitude** or **csv_path**. **NOTE:** there are some requirements and considerations for daily weather data:
+- Any data collected within the past six months is considered provisional and may be subject to revisions.
+- Your start and end dates must be within one year of each other.
 
 Here's an example usage showing a non-bulk request, and all the available weather inputs (precipitation, min_temp, etc.) set to their defaults:
 ```
